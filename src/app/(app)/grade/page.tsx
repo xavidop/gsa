@@ -55,9 +55,6 @@ export default function GradePage() {
   const form = useForm<GradingFormValues>({
     resolver: zodResolver(formSchema),
   });
-  
-  const frontFileRef = form.register("frontImage");
-  const backFileRef = form.register("backImage");
 
   const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -212,8 +209,10 @@ export default function GradePage() {
                             type="file"
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                            {...frontFileRef}
-                            onChange={(e) => handleFileChange(e, 'front')}
+                            onChange={(e) => {
+                              field.onChange(e.target.files);
+                              handleFileChange(e, 'front');
+                            }}
                             />
                         </div>
                       </FormControl>
@@ -241,8 +240,10 @@ export default function GradePage() {
                             type="file"
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                            {...backFileRef}
-                             onChange={(e) => handleFileChange(e, 'back')}
+                             onChange={(e) => {
+                               field.onChange(e.target.files);
+                               handleFileChange(e, 'back');
+                             }}
                             />
                         </div>
                       </FormControl>
