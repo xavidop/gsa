@@ -67,13 +67,13 @@ export default function DashboardPage() {
 
   // Fetch collections
   const collectionsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user?.uid) return null;
     return query(
       collection(firestore, 'collections'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user?.uid]);
 
   const { data: collections = [], isLoading: collectionsLoading } = useCollection<Collection>(collectionsQuery);
 

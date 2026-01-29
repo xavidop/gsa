@@ -97,8 +97,7 @@ service cloud.firestore {
      * @principle Restricts access using userId stored in the collection document.
      */
     match /collections/{collectionId} {
-      allow read: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn();
+      allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId;
       allow delete: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid;
