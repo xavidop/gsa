@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper function to check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Cards images - users can only access their own card images
+    match /cards/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+    
+    // Profile images - users can only write their own, anyone can read
+    match /profiles/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId);
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
