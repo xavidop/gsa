@@ -27,6 +27,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '*.firebasestorage.app',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'placehold.co',
         port: '',
         pathname: '/**',
@@ -56,7 +68,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
-    unoptimized: process.env.NODE_ENV === 'development',
+    unoptimized: true, // Disable image optimization for Firebase hosting
   },
 };
 
