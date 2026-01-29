@@ -1,0 +1,14 @@
+[
+  {
+    "origin": [
+      "http://localhost:3000",
+      "http://localhost:9002",
+      "https://studio--studio-4970575221-858b3.us-central1.hosted.app",
+      "https://*.hosted.app",
+      "gsa.xavidop.me"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "X-Requested-With"]
+  }
+]
