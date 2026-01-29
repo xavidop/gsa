@@ -83,8 +83,20 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser) => { // Auth state determined
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+      async (firebaseUser) => { // Auth state determined
+        if (firebaseUser) {
+          try {
+            // CRITICAL: Wait for the ID token to be ready before exposing the user
+            // This ensures Firestore can validate the token in production
+            await firebaseUser.getIdToken(true);
+            setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+          } catch (error) {
+            console.error("FirebaseProvider: Failed to get ID token:", error);
+            setUserAuthState({ user: null, isUserLoading: false, userError: error as Error });
+          }
+        } else {
+          setUserAuthState({ user: null, isUserLoading: false, userError: null });
+        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);

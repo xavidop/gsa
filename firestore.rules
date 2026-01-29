@@ -91,16 +91,21 @@ service cloud.firestore {
 
     /**
      * @description Secures a user's collections for organizing their graded cards.
+     * @path /users/{userId}/collections/{collectionId}
+     * @allow A user can manage their own collections.
+     * @principle Uses path-based ownership like graded_cards.
+     */
+    match /users/{userId}/collections/{collectionId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    /**
+     * @description Legacy top-level collections - kept for backward compatibility
      * @path /collections/{collectionId}
-     * @allow (create, read, list, update, delete) A user can manage their own collections.
-     * @deny (read) A user cannot read or list another user's collections.
-     * @principle Restricts access using userId stored in the collection document.
      */
     match /collections/{collectionId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId;
-      allow delete: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn();
     }
 
     /**

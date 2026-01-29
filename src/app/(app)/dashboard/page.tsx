@@ -37,7 +37,6 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
-  const [isAuthReady, setIsAuthReady] = useState(false);
   const [gradeFilter, setGradeFilter] = useState<string>('all');
   const [showMobileCollectionManager, setShowMobileCollectionManager] = useState(false);
   const [collectionFilter, setCollectionFilter] = useState<string>('all');
@@ -53,21 +52,10 @@ export default function DashboardPage() {
   
   const { toast } = useToast();
 
-  // Wait for auth to be fully ready before querying
-  useEffect(() => {
-    if (user?.uid) {
-      // Longer delay for production Firebase to ensure auth token has propagated
-      const timer = setTimeout(() => setIsAuthReady(true), 500);
-      return () => clearTimeout(timer);
-    } else {
-      setIsAuthReady(false);
-    }
-  }, [user?.uid]);
-
   // Fetch username for export
   useEffect(() => {
     const fetchUsername = async () => {
-      if (!user?.uid || !isAuthReady) return;
+      if (!user?.uid) return;
       const { doc, getDoc } = await import('firebase/firestore');
       const userDoc = await getDoc(doc(firestore, 'users', user.uid));
       if (userDoc.exists()) {
@@ -75,17 +63,17 @@ export default function DashboardPage() {
       }
     };
     fetchUsername();
-  }, [user?.uid, firestore, isAuthReady]);
+  }, [user?.uid, firestore]);
 
-  // Fetch collections
+  // Fetch collections - now as subcollection under user (path-based security)
   const collectionsQuery = useMemoFirebase(() => {
-    if (!user?.uid || !isAuthReady) return null;
+    if (!user) return null;
+    
     return query(
-      collection(firestore, 'collections'),
-      where('userId', '==', user.uid),
+      collection(firestore, 'users', user.uid, 'collections'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user?.uid, isAuthReady]);
+  }, [firestore, user]);
 
   const { data: collections = [], isLoading: collectionsLoading } = useCollection<Collection>(collectionsQuery);
 

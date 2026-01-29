@@ -52,8 +52,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
 
     setIsLoading(true);
     try {
-      await addDoc(collection(firestore, 'collections'), {
-        userId: user.uid,
+      await addDoc(collection(firestore, 'users', user.uid, 'collections'), {
         name: name.trim(),
         description: description.trim() || null,
         createdAt: serverTimestamp(),
@@ -82,11 +81,11 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
   };
 
   const handleEdit = async () => {
-    if (!selectedCollection || !name.trim()) return;
+    if (!user || !selectedCollection || !name.trim()) return;
 
     setIsLoading(true);
     try {
-      await updateDoc(doc(firestore, 'collections', selectedCollection.id), {
+      await updateDoc(doc(firestore, 'users', user.uid, 'collections', selectedCollection.id), {
         name: name.trim(),
         description: description.trim() || null,
         updatedAt: serverTimestamp(),
@@ -115,11 +114,11 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
   };
 
   const handleDelete = async () => {
-    if (!selectedCollection) return;
+    if (!user || !selectedCollection) return;
 
     setIsLoading(true);
     try {
-      await deleteDoc(doc(firestore, 'collections', selectedCollection.id));
+      await deleteDoc(doc(firestore, 'users', user.uid, 'collections', selectedCollection.id));
 
       toast({
         title: 'Collection deleted',
