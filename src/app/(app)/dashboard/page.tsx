@@ -56,8 +56,8 @@ export default function DashboardPage() {
   // Wait for auth to be fully ready before querying
   useEffect(() => {
     if (user?.uid) {
-      // Small delay to ensure auth token has propagated to Firestore
-      const timer = setTimeout(() => setIsAuthReady(true), 100);
+      // Longer delay for production Firebase to ensure auth token has propagated
+      const timer = setTimeout(() => setIsAuthReady(true), 500);
       return () => clearTimeout(timer);
     } else {
       setIsAuthReady(false);
