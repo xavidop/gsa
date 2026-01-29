@@ -44,3 +44,8 @@ runConfig:
       availability:
         - BUILD
         - RUNTIME
+    # Gemini API Key for AI grading (stored as secret)
+    - variable: GEMINI_API_KEY
+      secret: GEMINI_API_KEY
+      availability:
+        - RUNTIME
