@@ -53,7 +53,8 @@ const AnalyzeCardOutputSchema = z.object({
       .describe('The surface subgrade of the card, from 1 to 10.'),
   }),
   cardName: z.string().optional().describe('The name of the card, if detected.'),
-  setAndYear: z.string().optional().describe('The set and year of the card, if detected.'),
+  set: z.string().optional().describe('The set of the card, if detected.'),
+  year: z.string().optional().describe('The year of the card, if detected.'),
   confidenceScore: z
     .number()
     .min(0)
@@ -103,4 +104,3 @@ const analyzeCardFlow = ai.defineFlow(
     return output!;
   }
 );
-

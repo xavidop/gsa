@@ -19,5 +19,5 @@ export type GradedCard = {
   subgrades: Subgrades;
   confidence: number;
   createdAt: Timestamp | Date;
-  publicId: string;
+  publicShareId: string;
 };

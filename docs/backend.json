@@ -59,9 +59,13 @@
           "type": "string",
           "description": "Name of the card (if detected)."
         },
-        "setYear": {
+        "set": {
           "type": "string",
-          "description": "Set and year of the card (if detected)."
+          "description": "The set of the card (if detected)."
+        },
+        "year": {
+          "type": "string",
+          "description": "The year of the card (if detected)."
         },
         "aiGrade": {
           "type": "number",

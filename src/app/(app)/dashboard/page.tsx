@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/use-auth';
+import { useMemo } from 'react';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import type { GradedCard } from '@/lib/types';
 import { DigitalSlab } from '@/components/digital-slab';
 import { Button } from '@/components/ui/button';
@@ -13,34 +12,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/icons';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const [cards, setCards] = useState<GradedCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    const fetchCards = async () => {
-      if (!user) return;
-      try {
-        setLoading(true);
-        const q = query(
-          collection(db, 'cards'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-        const querySnapshot = await getDocs(q);
-        const userCards = querySnapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as GradedCard)
-        );
-        setCards(userCards);
-      } catch (error) {
-        console.error('Error fetching cards:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const cardsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'graded_cards'),
+      orderBy('createdAt', 'desc')
+    );
+  }, [firestore, user]);
 
-    fetchCards();
-  }, [user]);
+  const { data: cards, isLoading: loading } = useCollection<GradedCard>(cardsQuery);
 
   return (
     <div className="container py-8">
@@ -61,10 +44,10 @@ export default function DashboardPage() {
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      ) : cards.length > 0 ? (
+      ) : cards && cards.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {cards.map((card) => (
-             <Link href={`/card/${card.publicId}`} key={card.id}>
+             <Link href={`/card/${card.publicShareId}`} key={card.id}>
               <DigitalSlab card={card} />
             </Link>
           ))}

@@ -8,7 +8,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ export function AuthForm({ className, mode, ...props }: AuthFormProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
 
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
@@ -55,7 +56,6 @@ export function AuthForm({ className, mode, ...props }: AuthFormProps) {
       } else {
         await signInWithEmailAndPassword(auth, data.email, data.password);
       }
-      router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: 'destructive',

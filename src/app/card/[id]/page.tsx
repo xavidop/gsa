@@ -1,43 +1,43 @@
+'use client';
+
 import { collection, getDocs, query, where, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { GradedCard } from '@/lib/types';
 import { DigitalSlab } from '@/components/digital-slab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Home } from 'lucide-react';
+import { AlertTriangle, Home, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import Image from 'next/image';
 
-async function getCardByPublicId(publicId: string): Promise<GradedCard | null> {
-  const q = query(
-    collection(db, 'cards'),
-    where('publicId', '==', publicId),
-    limit(1)
-  );
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) {
-    return null;
-  }
-  const doc = querySnapshot.docs[0];
-  const data = doc.data();
-
-  // Convert Firestore Timestamp to Date
-  const card: GradedCard = {
-    id: doc.id,
-    ...data,
-    createdAt: data.createdAt.toDate(),
-  } as GradedCard;
-
-  return card;
-}
-
-export default async function PublicCardPage({
+export default function PublicCardPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const card = await getCardByPublicId(params.id);
+  const firestore = useFirestore();
+  const publicId = params.id;
+
+  const cardQuery = useMemoFirebase(() => {
+    if (!publicId) return null;
+    return query(
+      collection(firestore, 'public_graded_cards'),
+      where('publicShareId', '==', publicId),
+      limit(1)
+    );
+  }, [firestore, publicId]);
+
+  const { data: cards, isLoading } = useCollection<GradedCard>(cardQuery);
+  const card = cards && cards.length > 0 ? cards[0] : null;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!card) {
     return (
@@ -62,6 +62,11 @@ export default async function PublicCardPage({
       </div>
     );
   }
+  
+  const displayCard = {
+    ...card,
+    createdAt: (card.createdAt as any)?.toDate ? (card.createdAt as any).toDate() : card.createdAt,
+  } as GradedCard;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
@@ -74,7 +79,7 @@ export default async function PublicCardPage({
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
         <div className="lg:col-span-1 flex justify-center">
-            <DigitalSlab card={card} isPublicPage={true} />
+            <DigitalSlab card={displayCard} isPublicPage={true} />
         </div>
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card>

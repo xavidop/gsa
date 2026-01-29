@@ -19,7 +19,7 @@ function SubgradeIcon({ type, className }: SubgradeIconProps) {
 
 export function DigitalSlab({ card, isPublicPage = false }: { card: GradedCard, isPublicPage?: boolean }) {
   const pathname = usePathname();
-  const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/card/${card.publicId}` : '';
+  const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/card/${card.publicShareId}` : '';
 
   return (
     <motion.div
@@ -90,7 +90,7 @@ export function DigitalSlab({ card, isPublicPage = false }: { card: GradedCard, 
                 {isPublicPage && publicUrl && (
                      <div className="flex flex-col items-center gap-1">
                         <QRCode url={publicUrl} size={60} />
-                        <span className="text-[8px] text-muted-foreground font-mono break-all">{card.publicId}</span>
+                        <span className="text-[8px] text-muted-foreground font-mono break-all">{card.publicShareId}</span>
                      </div>
                 )}
             </div>

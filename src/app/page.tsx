@@ -32,7 +32,7 @@ export default function Home() {
     },
     confidence: 0.98,
     createdAt: new Date(),
-    publicId: 'sample',
+    publicShareId: 'sample',
   };
 
   return (

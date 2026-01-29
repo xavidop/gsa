@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,13 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ArrowRight, Loader2, Sparkles, UploadCloud } from 'lucide-react';
+import { Loader2, Sparkles, UploadCloud } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { handleGradeRequest } from '@/lib/actions';
 import { DigitalSlab } from '@/components/digital-slab';
 import type { GradedCard } from '@/lib/types';
 import Link from 'next/link';
+import { useFirebase, setDocumentNonBlocking } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, doc, serverTimestamp } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
+import { analyzeCard } from '@/ai/ai-card-grading';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -46,6 +50,7 @@ export default function GradePage() {
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
   const [backPreview, setBackPreview] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user, firestore, storage } = useFirebase();
 
   const form = useForm<GradingFormValues>({
     resolver: zodResolver(formSchema),
@@ -54,22 +59,78 @@ export default function GradePage() {
   const frontFileRef = form.register("frontImage");
   const backFileRef = form.register("backImage");
 
+  const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+  });
+
   const onSubmit = async (data: GradingFormValues) => {
     setIsLoading(true);
     setGradedCard(null);
 
-    const formData = new FormData();
-    formData.append('frontImage', data.frontImage[0]);
-    formData.append('backImage', data.backImage[0]);
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
+        setIsLoading(false);
+        return;
+    }
 
     try {
-      const result = await handleGradeRequest(formData);
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      if (result.card) {
-        setGradedCard(result.card);
-      }
+        const frontImageFile = data.frontImage[0];
+        const backImageFile = data.backImage[0];
+
+        const publicShareId = uuidv4().slice(0, 8);
+
+        // Upload images
+        const frontImageRef = ref(storage, `cards/${user.uid}/${publicShareId}/front.webp`);
+        await uploadBytes(frontImageRef, frontImageFile);
+        const frontImageUrl = await getDownloadURL(frontImageRef);
+
+        const backImageRef = ref(storage, `cards/${user.uid}/${publicShareId}/back.webp`);
+        await uploadBytes(backImageRef, backImageFile);
+        const backImageUrl = await getDownloadURL(backImageRef);
+
+        // AI Grading
+        const frontImageDataUri = await toBase64(frontImageFile);
+        const backImageDataUri = await toBase64(backImageFile);
+        const gradingResult = await analyzeCard({ frontImageDataUri, backImageDataUri });
+        
+        const privateCollectionRef = collection(firestore, 'users', user.uid, 'graded_cards');
+        const newCardRef = doc(privateCollectionRef); // Create ref with new ID
+        const newCardId = newCardRef.id;
+
+        // Create card object
+        const cardData: Omit<GradedCard, 'id' | 'createdAt'> = {
+            userId: user.uid,
+            frontImageUrl,
+            backImageUrl,
+            cardName: gradingResult.cardName,
+            set: gradingResult.set,
+            year: gradingResult.year,
+            grade: gradingResult.overallGrade,
+            subgrades: gradingResult.subgrades,
+            confidence: gradingResult.confidenceScore,
+            publicShareId,
+        };
+        
+        const dataToSave = { ...cardData, createdAt: serverTimestamp() };
+
+        // Save to user's private collection
+        setDocumentNonBlocking(newCardRef, dataToSave, {});
+
+        // Save to public collection
+        const publicDocRef = doc(firestore, 'public_graded_cards', publicShareId);
+        setDocumentNonBlocking(publicDocRef, dataToSave, {});
+
+        const finalCard: GradedCard = {
+            ...cardData,
+            id: newCardId,
+            createdAt: new Date(), // for client-side display
+        };
+        
+        setGradedCard(finalCard);
+
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -103,7 +164,7 @@ export default function GradePage() {
             </div>
              <div className="mt-8 flex justify-center gap-4">
                 <Button asChild>
-                    <Link href={`/card/${gradedCard.publicId}`}>View Public Page</Link>
+                    <Link href={`/card/${gradedCard.publicShareId}`}>View Public Page</Link>
                 </Button>
                 <Button variant="outline" onClick={() => {
                     setGradedCard(null);
@@ -140,7 +201,7 @@ export default function GradePage() {
                       <FormControl>
                         <div className="relative w-full h-64 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground">
                           {frontPreview ? (
-                            <Image src={frontPreview} alt="Front preview" layout="fill" objectFit="contain" className="p-2"/>
+                            <Image src={frontPreview} alt="Front preview" fill objectFit="contain" className="p-2"/>
                           ) : (
                             <div className="text-center">
                                 <UploadCloud className="mx-auto h-12 w-12" />
@@ -169,7 +230,7 @@ export default function GradePage() {
                       <FormControl>
                         <div className="relative w-full h-64 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground">
                           {backPreview ? (
-                            <Image src={backPreview} alt="Back preview" layout="fill" objectFit="contain" className="p-2"/>
+                            <Image src={backPreview} alt="Back preview" fill objectFit="contain" className="p-2"/>
                           ) : (
                             <div className="text-center">
                                 <UploadCloud className="mx-auto h-12 w-12" />
