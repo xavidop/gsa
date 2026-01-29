@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'tcgplayer-cdn.com',
+        hostname: 'tcgplayer-cdn.tcgplayer.com',
         port: '',
         pathname: '/**',
       },
