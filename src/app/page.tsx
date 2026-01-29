@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, Download, BookOpen, FolderOpen, FileBarChart } from 'lucide-react';
 import { DigitalSlab } from '@/components/digital-slab';
 import { Icons } from '@/components/icons';
 import placeHolderImage from '@/lib/placeholder-images.json';
@@ -21,8 +21,8 @@ export default function Home() {
     userId: 'sample',
     frontImageUrl: placeHolderImage.placeholderImages[0].imageUrl,
     backImageUrl: 'https://picsum.photos/seed/2/400/600',
-    cardName: 'Amazing Charizard',
-    set: 'Vivid Voltage',
+    cardName: 'Mew EX',
+    set: 'Paldean Fates',
     grade: 10,
     subgrades: {
       centering: 10,
@@ -58,9 +58,9 @@ export default function Home() {
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+              <div className="flex flex-col justify-center space-y-6">
+                <div className="space-y-4">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
                     The Future of Card Grading is Here
                   </h1>
@@ -77,7 +77,7 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-center -mr-16 md:-mr-32">
+              <div className="flex items-center justify-center lg:justify-end">
                  <DigitalSlab card={sampleCard} />
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function Home() {
                    <h3 className="text-lg font-bold">AI Grading</h3>
                  </div>
                  <p className="text-sm text-secondary-foreground/80">
-                   Gemini Vision AI analyzes centering, corners, edges, and surface for a comprehensive grade.
+                   AI analyzes centering, corners, edges, and surface for a comprehensive grade.
                  </p>
                </div>
                <div className="relative group grid gap-1">
@@ -131,6 +131,39 @@ export default function Home() {
                  </div>
                  <p className="text-sm text-secondary-foreground/80">
                    Receive a beautiful, animated digital slab to showcase your card's official GSA grade.
+                 </p>
+               </div>
+               <div className="relative group grid gap-1">
+                 <div className="flex items-center gap-4">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+                     <Download className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-lg font-bold">PDF Certificates</h3>
+                 </div>
+                 <p className="text-sm text-secondary-foreground/80">
+                   Download professional certificates with QR codes for verification and insurance.
+                 </p>
+               </div>
+               <div className="relative group grid gap-1">
+                 <div className="flex items-center gap-4">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+                     <FolderOpen className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-lg font-bold">Collections</h3>
+                 </div>
+                 <p className="text-sm text-secondary-foreground/80">
+                   Organize your cards into custom collections for better portfolio management.
+                 </p>
+               </div>
+               <div className="relative group grid gap-1">
+                 <div className="flex items-center gap-4">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+                     <FileBarChart className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-lg font-bold">Analytics & Export</h3>
+                 </div>
+                 <p className="text-sm text-secondary-foreground/80">
+                   View detailed analytics and export your collection to CSV or PDF portfolio reports.
                  </p>
                </div>
             </div>
@@ -159,12 +192,12 @@ export default function Home() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 Global Slab Authority. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Global Slab Authority. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+          <Link href="/terms" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Terms of Service
           </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+          <Link href="/privacy" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Privacy
           </Link>
         </nav>

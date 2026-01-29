@@ -153,17 +153,19 @@ export default function GradePage() {
   
   if (gradedCard) {
     return (
-        <div className="container py-12 text-center">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline mb-2">Grading Complete!</h1>
-            <p className="text-muted-foreground mb-8">Your card has been successfully graded by GSA.</p>
-            <div className="flex justify-center">
+        <div className="container max-w-6xl py-12">
+            <div className="text-center mb-12">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline mb-2">Grading Complete!</h1>
+                <p className="text-muted-foreground text-lg">Your card has been successfully graded by GSA.</p>
+            </div>
+            <div className="flex justify-center mb-12">
                 <DigitalSlab card={gradedCard} isPublicPage={true} />
             </div>
-             <div className="mt-8 flex justify-center gap-4">
-                <Button asChild>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Button asChild size="lg">
                     <Link href={`/card/${gradedCard.publicShareId}`}>View Public Page</Link>
                 </Button>
-                <Button variant="outline" onClick={() => {
+                <Button variant="outline" size="lg" onClick={() => {
                     setGradedCard(null);
                     setFrontPreview(null);
                     setBackPreview(null);
@@ -177,18 +179,18 @@ export default function GradePage() {
   }
 
   return (
-    <div className="container max-w-4xl py-12">
+    <div className="container max-w-4xl py-6 sm:py-12 px-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Grade a New Card</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl font-headline">Grade a New Card</CardTitle>
           <CardDescription>
             Upload front and back images of your trading card to receive an AI-powered grade.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 <FormField
                   control={form.control}
                   name="frontImage"

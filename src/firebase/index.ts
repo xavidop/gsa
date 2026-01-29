@@ -1,10 +1,13 @@
 'use client';
 
-import { firebaseConfig } from '@/firebase/config';
+import { firebaseConfig, useEmulators, emulatorConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
+
+// Track if emulators have been connected (only do once)
+let emulatorsConnected = false;
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -34,11 +37,33 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  const auth = getAuth(firebaseApp);
+  const firestore = getFirestore(firebaseApp);
+  const storage = getStorage(firebaseApp);
+
+  // Connect to emulators if enabled (only once)
+  if (useEmulators && !emulatorsConnected) {
+    try {
+      const [authHost, authPort] = emulatorConfig.auth.split(':');
+      const [firestoreHost, firestorePort] = emulatorConfig.firestore.split(':');
+      const [storageHost, storagePort] = emulatorConfig.storage.split(':');
+
+      connectAuthEmulator(auth, `http://${emulatorConfig.auth}`, { disableWarnings: true });
+      connectFirestoreEmulator(firestore, firestoreHost, parseInt(firestorePort));
+      connectStorageEmulator(storage, storageHost, parseInt(storagePort));
+      
+      emulatorsConnected = true;
+      console.log('🔥 Connected to Firebase Emulators');
+    } catch (error) {
+      console.error('Failed to connect to Firebase Emulators:', error);
+    }
+  }
+
   return {
     firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp)
+    auth,
+    firestore,
+    storage
   };
 }
 

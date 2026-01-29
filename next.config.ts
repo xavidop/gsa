@@ -5,11 +5,26 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9199',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '9199',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.appspot.com',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'placehold.co',
@@ -19,6 +34,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'tcgplayer-cdn.com',
         port: '',
         pathname: '/**',
       },
@@ -35,6 +56,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       }
     ],
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 };
 

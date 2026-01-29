@@ -5,3 +5,42 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+  
+  # Environment variables
+  env:
+    - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+      value: "AIzaSyBWr4Dk2P_JMtDficykNkgFfYCivYweWhc"
+      availability:
+        - BUILD
+        - RUNTIME
+    - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+      value: "studio-4970575221-858b3.firebaseapp.com"
+      availability:
+        - BUILD
+        - RUNTIME
+    # The Firebase Project ID must be "demo-app" to match what is is set in the .firebaserc file
+    - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+      value: "studio-4970575221-858b3"
+      availability:
+        - BUILD
+        - RUNTIME
+    - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+      value: "studio-4970575221-858b3.appspot.com"
+      availability:
+        - BUILD
+        - RUNTIME
+    - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+      value: "279785791414"
+      availability:
+        - BUILD
+        - RUNTIME
+    - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+      value: "1:279785791414:web:81ed17a035aa856f5d2b17"
+      availability:
+        - BUILD
+        - RUNTIME
+    - variable: NEXT_PUBLIC_GA_MEASUREMENT_ID
+      value: "" # Replace with your actual GA4 Measurement ID
+      availability:
+        - BUILD
+        - RUNTIME

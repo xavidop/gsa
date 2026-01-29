@@ -7,6 +7,8 @@ import * as z from 'zod';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
 } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -23,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Icons } from '@/components/icons';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -39,6 +42,7 @@ interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function AuthForm({ className, mode, ...props }: AuthFormProps) {
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
@@ -67,8 +71,50 @@ export function AuthForm({ className, mode, ...props }: AuthFormProps) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-In Failed',
+        description: error.message || 'An unexpected error occurred.',
+      });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
   return (
     <div className={cn('grid gap-6', className)} {...props}>
+      <Button
+        variant="outline"
+        type="button"
+        disabled={isLoading || isGoogleLoading}
+        onClick={signInWithGoogle}
+        className="w-full"
+      >
+        {isGoogleLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Icons.google className="mr-2 h-4 w-4" />
+        )}
+        Continue with Google
+      </Button>
+      
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
+        </div>
+      </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -108,7 +154,7 @@ export function AuthForm({ className, mode, ...props }: AuthFormProps) {
             )}
           />
 
-          <Button disabled={isLoading} className="w-full" type="submit">
+          <Button disabled={isLoading || isGoogleLoading} className="w-full" type="submit">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === 'signup' ? 'Sign Up' : 'Log In'}
           </Button>
