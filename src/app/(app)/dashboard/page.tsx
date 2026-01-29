@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [gradeFilter, setGradeFilter] = useState<string>('all');
   const [showMobileCollectionManager, setShowMobileCollectionManager] = useState(false);
   const [collectionFilter, setCollectionFilter] = useState<string>('all');
@@ -52,10 +53,21 @@ export default function DashboardPage() {
   
   const { toast } = useToast();
 
+  // Wait for auth to be fully ready before querying
+  useEffect(() => {
+    if (user?.uid) {
+      // Small delay to ensure auth token has propagated to Firestore
+      const timer = setTimeout(() => setIsAuthReady(true), 100);
+      return () => clearTimeout(timer);
+    } else {
+      setIsAuthReady(false);
+    }
+  }, [user?.uid]);
+
   // Fetch username for export
   useEffect(() => {
     const fetchUsername = async () => {
-      if (!user) return;
+      if (!user?.uid || !isAuthReady) return;
       const { doc, getDoc } = await import('firebase/firestore');
       const userDoc = await getDoc(doc(firestore, 'users', user.uid));
       if (userDoc.exists()) {
@@ -63,17 +75,17 @@ export default function DashboardPage() {
       }
     };
     fetchUsername();
-  }, [user, firestore]);
+  }, [user?.uid, firestore, isAuthReady]);
 
   // Fetch collections
   const collectionsQuery = useMemoFirebase(() => {
-    if (!user?.uid) return null;
+    if (!user?.uid || !isAuthReady) return null;
     return query(
       collection(firestore, 'collections'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user?.uid]);
+  }, [firestore, user?.uid, isAuthReady]);
 
   const { data: collections = [], isLoading: collectionsLoading } = useCollection<Collection>(collectionsQuery);
 
