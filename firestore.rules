@@ -1,0 +1,102 @@
+/**
+ * This ruleset enforces a strict user-ownership model for private data, with a
+ * separate mechanism for explicitly sharing items publicly.
+ *
+ * Core Philosophy:
+ * The security model is built on the principle of data segregation. Each user's
+ * private data, including their profile and their collection of graded cards, is
+ * stored within a path that contains their unique user ID (`/users/{userId}`).
+ * Access is granted only if the requesting user's ID matches the ID in the path.
+ * This provides a strong, default-private security posture. Publicly shared
+ * data is explicitly copied to a separate top-level collection, ensuring that
+ * private collections are never accidentally exposed.
+ *
+ * Data Structure:
+ * - /users/{userId}: A user's private profile document.
+ * - /users/{userId}/graded_cards/{gradedCardId}: A subcollection containing a
+ *   user's private graded card documents.
+ * - /public_graded_cards/{publicShareId}: A separate top-level collection for
+ *   graded cards that a user has chosen to make public.
+ *
+ * Key Security Decisions:
+ * - User Isolation: Users can only read or write their own documents within the
+ *   `/users/{userId}` tree. They cannot see or list other users' data.
+ * - No User Listing: It is not possible to list all documents in the `/users`
+ *   collection.
+ * - Explicit Public Sharing: Data is private by default. To make a graded card
+ *   public, a copy must be created in the `/public_graded_cards` collection. This
+ *   collection is read-only for the public, while write access is restricted to
+ *   the original owner of the card.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure rules, the `userId` is denormalized onto every
+ * `GradedCard` document, both in the private and public collections. This allows
+ * rules to check for ownership directly from the document's data without needing
+ * costly `get()` calls to other documents.
+ *
+ * Structural Segregation:
+ * The separation of private (`/users/{userId}/graded_cards`) and public
+ * (`/public_graded_cards`) collections is a critical design choice. It allows for
+ * simple, performant, and secure rules for list operations. The public can list
+ * all shared cards without any risk of accessing a user's private collection.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for readable and reusable logic
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Checks if the requesting user is the owner of the document based on a UID.
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Controls access to a user's private profile document.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user can create their own profile document.
+     * @deny (create) An authenticated user cannot create a profile for another user.
+     * @principle Enforces self-creation and ownership for a user's root document.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && resource != null && request.resource.data.id == resource.data.id;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Secures the private collection of a user's graded cards.
+     * @path /users/{userId}/graded_cards/{gradedCardId}
+     * @allow (create, read, list, update, delete) A user can manage their own graded cards.
+     * @deny (read) A user cannot read or list another user's graded cards.
+     * @principle Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/graded_cards/{gradedCardId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isOwner(userId) && resource != null && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Manages publicly shared graded cards. Anyone can view them.
+     * @path /public_graded_cards/{publicShareId}
+     * @allow (read) Any user, including unauthenticated users, can view public cards.
+     * @deny (create) An authenticated user cannot create a public card for another user.
+     * @principle Implements a "Public Read with Owner-Only Writes" pattern.
+     */
+    match /public_graded_cards/{publicShareId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.publicShareId == publicShareId;
+      allow update: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid && request.resource.data.userId == resource.data.userId && request.resource.data.publicShareId == resource.data.publicShareId;
+      allow delete: if isSignedIn() && resource != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}

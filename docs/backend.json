@@ -1,0 +1,175 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the GSA platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's display name."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "createdAt"
+      ]
+    },
+    "GradedCard": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GradedCard",
+      "type": "object",
+      "description": "Represents a graded trading card.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the graded card."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who submitted the card. (Relationship: User 1:N GradedCard)"
+        },
+        "frontImageUrl": {
+          "type": "string",
+          "description": "URL of the front image of the card.",
+          "format": "uri"
+        },
+        "backImageUrl": {
+          "type": "string",
+          "description": "URL of the back image of the card.",
+          "format": "uri"
+        },
+        "cardName": {
+          "type": "string",
+          "description": "Name of the card (if detected)."
+        },
+        "setYear": {
+          "type": "string",
+          "description": "Set and year of the card (if detected)."
+        },
+        "aiGrade": {
+          "type": "number",
+          "description": "Overall AI grading score (1-10)."
+        },
+        "centeringSubgrade": {
+          "type": "number",
+          "description": "Subgrade for centering."
+        },
+        "cornersSubgrade": {
+          "type": "number",
+          "description": "Subgrade for corners."
+        },
+        "edgesSubgrade": {
+          "type": "number",
+          "description": "Subgrade for edges."
+        },
+        "surfaceSubgrade": {
+          "type": "number",
+          "description": "Subgrade for surface."
+        },
+        "confidenceScore": {
+          "type": "number",
+          "description": "Confidence score of the AI grading."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the card was graded.",
+          "format": "date-time"
+        },
+        "publicShareId": {
+          "type": "string",
+          "description": "Unique identifier for public sharing."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "frontImageUrl",
+        "backImageUrl",
+        "aiGrade",
+        "confidenceScore",
+        "createdAt",
+        "publicShareId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information.  This is a private data store, accessible only to the user and admins.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/graded_cards/{gradedCardId}",
+        "definition": {
+          "entityName": "GradedCard",
+          "schema": {
+            "$ref": "#/backend/entities/GradedCard"
+          },
+          "description": "Stores graded card information for a specific user. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "gradedCardId",
+              "description": "The unique identifier of the graded card."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/public_graded_cards/{publicShareId}",
+        "definition": {
+          "entityName": "GradedCard",
+          "schema": {
+            "$ref": "#/backend/entities/GradedCard"
+          },
+          "description": "Stores public graded card information, shared by users. Indexed by publicShareId.",
+          "params": [
+            {
+              "name": "publicShareId",
+              "description": "The unique identifier for public sharing."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability, adhering to the core design principles.  User data and graded card data are segregated into separate collections with clear ownership. Authorization independence is achieved through path-based ownership for private user data and leveraging this same path-based ownership in subcollections.  This eliminates the need for `get()` calls in security rules. Segregation of `graded_cards` into user-owned subcollections supports secure `list` operations (QAPs) as rules can easily filter by `request.auth.uid` without needing to filter data. Invariants such as ownership and timestamps are enforced through the structure and can be validated in security rules.\n\nSpecifically, each user has a dedicated subcollection `users/{userId}/graded_cards`. This path-based ownership ensures that only the user can access their own graded cards. The `userId` is present in every `GradedCard` document, further reinforcing ownership. This denormalization of the `userId` within the card document allows for simple and secure security rules that rely solely on `request.auth.uid` matching the `userId` in the document, enforcing authorization independence.\n\nThe public share feature is implemented using the `publicShareId` property on the `GradedCard` document and a dedicated `public_graded_cards` collection. The `publicShareId` can be used to look up a specific shared card in the `public_graded_cards` collection, providing an additional means to share a card publically. This segregation of public card data into the `public_graded_cards` collection allows for secure `list` operations where only the publicly shared cards are accessible without revealing any user's private cards."
+  }
+}
