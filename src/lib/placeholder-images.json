@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "charizard-card",
+      "description": "A holographic Charizard trading card.",
+      "imageUrl": "https://images.unsplash.com/photo-1647893977174-d1a0d4bd93e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0cmFkaW5nJTIwY2FyZHxlbnwwfHx8fDE3Njk2OTcyMjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "trading card"
+    }
+  ]
 }
