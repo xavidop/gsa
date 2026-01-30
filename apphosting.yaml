@@ -49,3 +49,4 @@ runConfig:
       secret: GEMINI_API_KEY
       availability:
         - RUNTIME
+    # Force deployment refresh - v2
