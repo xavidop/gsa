@@ -15,6 +15,8 @@ import {
   arrayRemove,
   addDoc,
   query,
+  where,
+  limit,
   orderBy,
   getDocs,
   serverTimestamp,
@@ -39,6 +41,21 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  // Helper function to get the private card ID by publicShareId
+  const getPrivateCardId = async (): Promise<string | null> => {
+    try {
+      const privateCardsQuery = query(
+        collection(firestore, 'users', card.userId, 'graded_cards'),
+        where('publicShareId', '==', card.publicShareId),
+        limit(1)
+      );
+      const snapshot = await getDocs(privateCardsQuery);
+      return snapshot.empty ? null : snapshot.docs[0].id;
+    } catch (error) {
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (user && card.likes) {
@@ -79,7 +96,6 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
     }
 
     try {
-      const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', card.id);
       const publicCardRef = doc(firestore, 'public_graded_cards', card.publicShareId);
       const isOwner = user.uid === card.userId;
 
@@ -94,18 +110,15 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
         
         // Only update private card if we're the owner AND it exists
         if (isOwner) {
-          try {
-            const privateCardSnap = await getDoc(cardRef);
-            if (privateCardSnap.exists()) {
-              updates.push(
-                updateDoc(cardRef, {
-                  likes: arrayRemove(user.uid),
-                  likeCount: increment(-1),
-                })
-              );
-            }
-          } catch (err) {
-            // Ignore errors checking private card
+          const privateCardId = await getPrivateCardId();
+          if (privateCardId) {
+            const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', privateCardId);
+            updates.push(
+              updateDoc(cardRef, {
+                likes: arrayRemove(user.uid),
+                likeCount: increment(-1),
+              })
+            );
           }
         }
         
@@ -123,18 +136,15 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
         
         // Only update private card if we're the owner AND it exists
         if (isOwner) {
-          try {
-            const privateCardSnap = await getDoc(cardRef);
-            if (privateCardSnap.exists()) {
-              updates.push(
-                updateDoc(cardRef, {
-                  likes: arrayUnion(user.uid),
-                  likeCount: increment(1),
-                })
-              );
-            }
-          } catch (err) {
-            // Ignore errors checking private card
+          const privateCardId = await getPrivateCardId();
+          if (privateCardId) {
+            const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', privateCardId);
+            updates.push(
+              updateDoc(cardRef, {
+                likes: arrayUnion(user.uid),
+                likeCount: increment(1),
+              })
+            );
           }
         }
         
@@ -144,7 +154,7 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
       }
 
       if (onUpdate) onUpdate();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to update like. Please try again.',
@@ -183,14 +193,10 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
 
       // Only update private card if we're the owner AND it exists
       if (isOwner) {
-        try {
-          const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', card.id);
-          const privateCardSnap = await getDoc(cardRef);
-          if (privateCardSnap.exists()) {
-            updates.push(updateDoc(cardRef, { commentCount: increment(1) }));
-          }
-        } catch (err) {
-          // Ignore errors checking private card
+        const privateCardId = await getPrivateCardId();
+        if (privateCardId) {
+          const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', privateCardId);
+          updates.push(updateDoc(cardRef, { commentCount: increment(1) }));
         }
       }
       
@@ -203,7 +209,7 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
       setNewComment('');
       loadComments();
       if (onUpdate) onUpdate();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
         description: 'Failed to post comment.',
