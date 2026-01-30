@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, Timestamp, getDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp, getDoc, setDoc, collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import { Edit, Save, X, DollarSign, Calendar, FileText } from 'lucide-react';
 import type { GradedCard } from '@/lib/types';
@@ -35,25 +35,37 @@ export function CardNotes({ card, onUpdate }: CardNotesProps) {
   const isOwner = user?.uid === card.userId;
 
   const handleSave = async () => {
+    if (!isOwner) return;
+    
     setIsSaving(true);
     try {
-      const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', card.id);
+      // First, find the private card using publicShareId
+      const privateCardsQuery = query(
+        collection(firestore, 'users', card.userId, 'graded_cards'),
+        where('publicShareId', '==', card.publicShareId),
+        limit(1)
+      );
       
-      // Check if the card exists first
-      const cardSnap = await getDoc(cardRef);
+      const privateCardsSnapshot = await getDocs(privateCardsQuery);
+      let privateCardId: string;
       
-      if (!cardSnap.exists()) {
-        // Create the private card from the public one
-        // Remove id, userId, publicShareId from cardData to avoid conflicts
-        const { id, userId, publicShareId, ...cleanCardData } = card;
-        await setDoc(cardRef, {
+      if (privateCardsSnapshot.empty) {
+        // Card doesn't exist in private collection, create it
+        const { id, ...cleanCardData } = card;
+        const newCardRef = doc(collection(firestore, 'users', card.userId, 'graded_cards'));
+        await setDoc(newCardRef, {
           ...cleanCardData,
           userId: card.userId,
           publicShareId: card.publicShareId,
           createdAt: card.createdAt || Timestamp.now(),
           updatedAt: Timestamp.now(),
         });
+        privateCardId = newCardRef.id;
+      } else {
+        privateCardId = privateCardsSnapshot.docs[0].id;
       }
+      
+      const cardRef = doc(firestore, 'users', card.userId, 'graded_cards', privateCardId);
 
       const updateData = {
         notes,

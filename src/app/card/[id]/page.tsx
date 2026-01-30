@@ -266,11 +266,9 @@ export default function PublicCardPage({
               </Card>
             </div>
             
-            {/* Notes & Social (only show if user is owner or if public) */}
+            {/* Notes & Social */}
             <div className="space-y-6 mt-6">
-              {user && card.userId === user.uid && (
-                <CardNotes card={card} />
-              )}
+              <CardNotes card={card} />
               
               <CardSocial card={card} />
             </div>
