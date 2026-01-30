@@ -269,12 +269,19 @@ export default function AccountPage() {
       }
 
       // Update username in Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
+      const updateData: any = {
         username: data.username,
         email: user.email,
         displayName: user.displayName,
         updatedAt: new Date(),
-      }, { merge: true });
+      };
+
+      // Set profile to public by default when creating username for the first time
+      if (!currentUsername) {
+        updateData.isProfilePublic = true;
+      }
+
+      await setDoc(doc(firestore, 'users', user.uid), updateData, { merge: true });
 
       setCurrentUsername(data.username);
 
@@ -282,6 +289,11 @@ export default function AccountPage() {
         title: 'Username Updated',
         description: `Your username is now @${data.username}`,
       });
+
+      // Reload to update navigation menu if this is the first time setting username
+      if (!currentUsername) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
     } catch (error: any) {
       console.error('Username update error:', error);
       toast({
