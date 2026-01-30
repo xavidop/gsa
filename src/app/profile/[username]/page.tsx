@@ -37,6 +37,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
   const { user: currentUser } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [cards, setCards] = useState<GradedCard[]>([]);
+  const [totalCardCount, setTotalCardCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,6 +114,18 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
         })) as GradedCard[];
 
         setCards(userCards);
+
+        // If viewing own profile, get total card count including private cards
+        if (isOwnProfile) {
+          const totalCardsQuery = query(
+            collection(firestore, 'users', userId, 'graded_cards')
+          );
+          const totalCardsSnapshot = await getDocs(totalCardsQuery);
+          setTotalCardCount(totalCardsSnapshot.size);
+        } else {
+          // For other users, total count is just public cards
+          setTotalCardCount(userCards.length);
+        }
       } catch (err: any) {
         console.error('Error fetching profile:', err);
         setError(err.message || 'Failed to load profile');
@@ -213,7 +226,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">
-                    <strong>{cards.length}</strong> cards graded
+                    <strong>{totalCardCount}</strong> cards graded
                   </span>
                 </div>
               </div>

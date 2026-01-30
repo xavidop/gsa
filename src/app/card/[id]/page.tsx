@@ -40,8 +40,43 @@ export default function PublicCardPage({
     );
   }, [firestore, publicId]);
 
-  const { data: cards, isLoading } = useCollection<GradedCard>(cardQuery);
-  const card = cards && cards.length > 0 ? cards[0] : null;
+  const { data: cards, isLoading: publicCardsLoading } = useCollection<GradedCard>(cardQuery);
+  const [privateCard, setPrivateCard] = useState<GradedCard | null>(null);
+  const [isLoadingPrivate, setIsLoadingPrivate] = useState(false);
+  
+  const card = cards && cards.length > 0 ? cards[0] : privateCard;
+  const isLoading = publicCardsLoading || isLoadingPrivate;
+
+  // If card not found in public collection and user is logged in, check their private collection
+  useEffect(() => {
+    const checkPrivateCard = async () => {
+      if (cards && cards.length > 0) return; // Found in public collection
+      if (!user) return; // Not logged in
+      if (publicCardsLoading) return; // Still loading public cards
+      if (privateCard) return; // Already found private card
+
+      setIsLoadingPrivate(true);
+      try {
+        // Query user's private collection for this publicShareId
+        const privateQuery = query(
+          collection(firestore, 'users', user.uid, 'graded_cards'),
+          where('publicShareId', '==', publicId),
+          limit(1)
+        );
+        const snapshot = await getDocs(privateQuery);
+        if (!snapshot.empty) {
+          const cardData = snapshot.docs[0].data() as GradedCard;
+          setPrivateCard({ ...cardData, id: snapshot.docs[0].id });
+        }
+      } catch (error) {
+        console.error('Error fetching private card:', error);
+      } finally {
+        setIsLoadingPrivate(false);
+      }
+    };
+
+    checkPrivateCard();
+  }, [cards, user, publicCardsLoading, publicId, firestore, privateCard]);
 
   // Fetch card owner details
   useEffect(() => {

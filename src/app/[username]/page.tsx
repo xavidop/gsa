@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useMemo } from 'react';
-import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import type { GradedCard } from '@/lib/types';
 import { DigitalSlab } from '@/components/digital-slab';
@@ -88,17 +88,13 @@ export default function PublicProfilePage({
   const cardsQuery = useMemoFirebase(() => {
     if (!userProfile) return null;
     return query(
-      collection(firestore, 'users', userProfile.id, 'graded_cards')
+      collection(firestore, 'public_graded_cards'),
+      where('userId', '==', userProfile.id),
+      orderBy('createdAt', 'desc')
     );
   }, [firestore, userProfile]);
 
-  const { data: allCards } = useCollection<GradedCard>(cardsQuery);
-
-  // Filter for public cards (default to public if isPublic is undefined)
-  const cards = useMemo(() => {
-    if (!allCards) return [];
-    return allCards.filter(card => card.isPublic !== false);
-  }, [allCards]);
+  const { data: cards } = useCollection<GradedCard>(cardsQuery);
 
   // Calculate stats
   const stats = useMemo(() => {

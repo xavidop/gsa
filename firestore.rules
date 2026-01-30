@@ -64,8 +64,10 @@ service cloud.firestore {
      * @principle Enforces self-creation and ownership for a user's root document.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isSignedIn();
-      allow list: if isSignedIn();
+      // Allow anyone to read user profiles (for displaying card owners, public profiles, etc.)
+      allow get: if true;
+      // Allow anyone to query users by username for viewing public profiles
+      allow list: if true;
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) 
         || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'followingCount']));

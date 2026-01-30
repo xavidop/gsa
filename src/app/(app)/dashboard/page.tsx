@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { collection, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, where, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import type { GradedCard, Collection } from '@/lib/types';
 import { DigitalSlab } from '@/components/digital-slab';
@@ -82,13 +82,37 @@ export default function DashboardPage() {
 
     try {
       const cardRef = doc(firestore, 'users', user.uid, 'graded_cards', cardId);
+      const newStatus = !currentStatus;
+      
+      // Update the private card
       await updateDoc(cardRef, {
-        isPublic: !currentStatus
+        isPublic: newStatus
       });
+
+      // Get the card data to sync with public collection
+      const cardSnapshot = await getDoc(cardRef);
+      if (cardSnapshot.exists()) {
+        const cardData = cardSnapshot.data();
+        const publicShareId = cardData.publicShareId;
+
+        if (newStatus && publicShareId) {
+          // Card is now public - add/update in public collection
+          const publicCardRef = doc(firestore, 'public_graded_cards', publicShareId);
+          await setDoc(publicCardRef, {
+            ...cardData,
+            isPublic: true,
+            id: cardId
+          });
+        } else if (!newStatus && publicShareId) {
+          // Card is now private - remove from public collection
+          const publicCardRef = doc(firestore, 'public_graded_cards', publicShareId);
+          await deleteDoc(publicCardRef);
+        }
+      }
       
       toast({
-        title: !currentStatus ? 'Card is now public' : 'Card is now private',
-        description: !currentStatus 
+        title: newStatus ? 'Card is now public' : 'Card is now private',
+        description: newStatus 
           ? 'This card will appear on your public profile' 
           : 'This card is now hidden from your public profile',
       });
