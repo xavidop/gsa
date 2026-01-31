@@ -3,16 +3,17 @@
 import { use, useState, useEffect } from 'react';
 import { collection, getDocs, query, where, limit, orderBy, onSnapshot, doc } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
-import type { GradedCard } from '@/lib/types';
+import type { GradedCard, Collection, CollectionCard } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FollowButton } from '@/components/follow-button';
-import { AlertTriangle, Home, Loader2, Users } from 'lucide-react';
+import { AlertTriangle, Home, Loader2, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { DigitalSlab } from '@/components/digital-slab';
+import { CollectionCardDisplay } from '@/components/collection-card-display';
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -37,6 +38,8 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
   const { user: currentUser } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [cards, setCards] = useState<GradedCard[]>([]);
+  const [collectionCards, setCollectionCards] = useState<CollectionCard[]>([]);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [totalCardCount, setTotalCardCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,16 +118,65 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
 
         setCards(userCards);
 
+        // Fetch collections (public only for others, all for own profile)
+        const collectionsQuery = isOwnProfile
+          ? query(
+              collection(firestore, 'users', userId, 'collections'),
+              orderBy('createdAt', 'desc')
+            )
+          : query(
+              collection(firestore, 'users', userId, 'collections'),
+              where('isPublic', '==', true),
+              orderBy('createdAt', 'desc')
+            );
+
+        const collectionsSnapshot = await getDocs(collectionsQuery);
+        const userCollections = collectionsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
+          updatedAt: doc.data().updatedAt?.toDate?.() || doc.data().updatedAt,
+        })) as Collection[];
+
+        setCollections(userCollections);
+
+        // Fetch collection cards (public only for others, all for own profile)
+        const collectionCardsQuery = isOwnProfile
+          ? query(
+              collection(firestore, 'users', userId, 'collection_cards'),
+              orderBy('createdAt', 'desc'),
+              limit(20)
+            )
+          : query(
+              collection(firestore, 'users', userId, 'collection_cards'),
+              where('isPublic', '==', true),
+              orderBy('createdAt', 'desc'),
+              limit(20)
+            );
+
+        const collectionCardsSnapshot = await getDocs(collectionCardsQuery);
+        const userCollectionCards = collectionCardsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt,
+        })) as CollectionCard[];
+
+        setCollectionCards(userCollectionCards);
+
         // If viewing own profile, get total card count including private cards
         if (isOwnProfile) {
           const totalCardsQuery = query(
             collection(firestore, 'users', userId, 'graded_cards')
           );
           const totalCardsSnapshot = await getDocs(totalCardsQuery);
-          setTotalCardCount(totalCardsSnapshot.size);
+          const totalCollectionCardsQuery = query(
+            collection(firestore, 'users', userId, 'collection_cards')
+          );
+          const totalCollectionCardsSnapshot = await getDocs(totalCollectionCardsQuery);
+          setTotalCardCount(totalCardsSnapshot.size + totalCollectionCardsSnapshot.size);
         } else {
           // For other users, total count is just public cards
-          setTotalCardCount(userCards.length);
+          setTotalCardCount(userCards.length + userCollectionCards.length);
         }
       } catch (err: any) {
         console.error('Error fetching profile:', err);
@@ -193,79 +245,152 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
   }
 
   const isOwnProfile = currentUser?.uid === profile.uid;
+  const totalGradedCards = cards.length;
+  const totalCollectionCards = collectionCards.length;
 
   return (
-    <div className="container py-8 md:py-12">
-      <Card className="mb-8">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={profile.photoURL || undefined} alt={profile.displayName || profile.username} />
-              <AvatarFallback className="text-2xl">
-                {getInitials(profile.displayName, profile.email)}
-              </AvatarFallback>
-            </Avatar>
+    <div className="container py-6 md:py-8 max-w-7xl">
+      {/* Profile Header - Compact */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-8 p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border">
+        <Avatar className="h-20 w-20 ring-2 ring-primary/20">
+          <AvatarImage src={profile.photoURL || undefined} alt={profile.displayName || profile.username} />
+          <AvatarFallback className="text-xl bg-primary/10">
+            {getInitials(profile.displayName, profile.email)}
+          </AvatarFallback>
+        </Avatar>
 
-            <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-3xl font-bold font-headline mb-2">
-                {profile.displayName || profile.username}
-              </h1>
-              <p className="text-muted-foreground mb-4">@{profile.username}</p>
-
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    <strong>{profile.followerCount || 0}</strong> followers
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    <strong>{profile.followingCount || 0}</strong> following
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    <strong>{totalCardCount}</strong> cards graded
-                  </span>
-                </div>
-              </div>
-
-              {!isOwnProfile && currentUser && (
-                <FollowButton targetUserId={profile.uid} targetUserName={profile.username} />
-              )}
-
-              {isOwnProfile && (
-                <Button asChild variant="outline">
-                  <Link href="/account">Edit Profile</Link>
-                </Button>
-              )}
-            </div>
+        <div className="flex-1 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
+            <h1 className="text-2xl font-bold font-headline">
+              {profile.displayName || profile.username}
+            </h1>
+            <span className="text-muted-foreground">@{profile.username}</span>
           </div>
-        </CardContent>
-      </Card>
 
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold font-headline mb-4">Graded Cards</h2>
-        {cards.length === 0 ? (
-          <Card className="p-12 text-center border-dashed">
-            <Icons.logo className="w-12 h-12 mx-auto mb-4 opacity-20" />
-            <p className="text-muted-foreground">No graded cards yet</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {cards.map((card) => (
-              <Link
-                key={card.id}
-                href={`/card/${card.publicShareId}`}
-                className="group transition-transform hover:scale-[1.02]"
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-sm">
+            <span><strong>{profile.followerCount || 0}</strong> followers</span>
+            <span><strong>{profile.followingCount || 0}</strong> following</span>
+            <span><strong>{totalCardCount}</strong> cards</span>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {!isOwnProfile && currentUser && (
+            <FollowButton targetUserId={profile.uid} targetUserName={profile.username} />
+          )}
+          {isOwnProfile && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/account">Edit Profile</Link>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Stats Bar */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="p-4 rounded-xl bg-card/50 border border-border text-center">
+          <div className="text-2xl font-bold text-primary">{collections.length}</div>
+          <div className="text-xs text-muted-foreground">Collections</div>
+        </div>
+        <div className="p-4 rounded-xl bg-card/50 border border-border text-center">
+          <div className="text-2xl font-bold text-accent">{totalGradedCards}</div>
+          <div className="text-xs text-muted-foreground">Graded</div>
+        </div>
+        <div className="p-4 rounded-xl bg-card/50 border border-border text-center">
+          <div className="text-2xl font-bold text-secondary-foreground">{totalCollectionCards}</div>
+          <div className="text-xs text-muted-foreground">Ungraded</div>
+        </div>
+      </div>
+
+      {/* Collections - Horizontal Scroll */}
+      {collections.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <FolderOpen className="h-4 w-4 text-primary" />
+            Collections
+          </h2>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-thin">
+            {collections.map((collection) => (
+              <Link 
+                key={collection.id} 
+                href={isOwnProfile ? `/collection-detail/${collection.id}` : (collection.isPublic ? `/collection/${collection.id}` : '#')}
+                className={`flex-shrink-0 w-48 p-4 rounded-xl bg-card/50 border border-border ${(isOwnProfile || collection.isPublic) ? 'hover:border-primary/50 transition-colors' : 'cursor-default'}`}
               >
-                <DigitalSlab 
-                  card={card} 
-                  isPublicPage={true}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                  {!collection.isPublic && isOwnProfile && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Private</Badge>
+                  )}
+                </div>
+                <div className="font-medium text-sm truncate">{collection.name}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {collection.createdAt
+                    ? new Date(collection.createdAt).toLocaleDateString()
+                    : ''}
+                </div>
               </Link>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Cards Grid - Combined View */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Cards</h2>
+        
+        {cards.length === 0 && collectionCards.length === 0 ? (
+          <div className="p-12 text-center rounded-xl border border-dashed border-border">
+            <Icons.logo className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <p className="text-sm text-muted-foreground">No cards to display</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {/* Graded Cards */}
+            {cards.map((card) => {
+              return (
+                <Link
+                  key={card.id}
+                  href={`/card/${card.publicShareId}`}
+                  className="group transition-transform hover:scale-[1.02]"
+                >
+                  <DigitalSlab 
+                    card={card} 
+                    isPublicPage={true}
+                  />
+                </Link>
+              );
+            })}
+            
+            {/* Collection Cards */}
+            {collectionCards.map((card) => {
+              if (isOwnProfile) {
+                return (
+                  <Link
+                    key={card.id}
+                    href={`/card-detail/${card.id}`}
+                    className="group transition-transform hover:scale-[1.02]"
+                  >
+                    <CollectionCardDisplay card={card} />
+                  </Link>
+                );
+              } else if (card.isPublic) {
+                return (
+                  <Link
+                    key={card.id}
+                    href={`/collection-card/${card.id}`}
+                    className="group transition-transform hover:scale-[1.02]"
+                  >
+                    <CollectionCardDisplay card={card} />
+                  </Link>
+                );
+              } else {
+                return (
+                  <div key={card.id} className="group transition-transform hover:scale-[1.02]">
+                    <CollectionCardDisplay card={card} />
+                  </div>
+                );
+              }
+            })}
           </div>
         )}
       </div>

@@ -149,10 +149,10 @@ export default function Home() {
                    <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
                      <FolderOpen className="h-5 w-5" />
                    </div>
-                   <h3 className="text-lg font-bold">Collections</h3>
+                   <h3 className="text-lg font-bold">Smart Collections</h3>
                  </div>
                  <p className="text-sm text-secondary-foreground/80">
-                   Organize your cards into custom collections for better portfolio management.
+                   Organize graded and ungraded cards into public or private collections with AI extraction.
                  </p>
                </div>
                <div className="relative group grid gap-1">
@@ -160,10 +160,10 @@ export default function Home() {
                    <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
                      <FileBarChart className="h-5 w-5" />
                    </div>
-                   <h3 className="text-lg font-bold">Analytics & Export</h3>
+                   <h3 className="text-lg font-bold">Analytics & Insights</h3>
                  </div>
                  <p className="text-sm text-secondary-foreground/80">
-                   View detailed analytics and export your collection to CSV or PDF portfolio reports.
+                   Track your entire collection with detailed analytics, value tracking, and export options.
                  </p>
                </div>
             </div>

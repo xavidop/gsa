@@ -78,13 +78,12 @@ service cloud.firestore {
      * @description Secures the private collection of a user's graded cards.
      * @path /users/{userId}/graded_cards/{gradedCardId}
      * @allow (create, read, list, update, delete) A user can manage their own graded cards.
+     * @allow (get, list) Anyone can read public graded cards.
      * @allow (update) Authenticated users can update likes and likeCount for social features.
-     * @deny (read) A user cannot read or list another user's graded cards.
      * @principle Restricts access to a user's own data tree using path-based ownership.
      */
     match /users/{userId}/graded_cards/{gradedCardId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || resource.data.isPublic == true;
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isOwner(userId) 
         || (isSignedIn() && resource != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likeCount', 'commentCount']));
@@ -95,11 +94,26 @@ service cloud.firestore {
      * @description Secures a user's collections for organizing their graded cards.
      * @path /users/{userId}/collections/{collectionId}
      * @allow A user can manage their own collections.
+     * @allow (get, list) Anyone can read public collections.
      * @principle Uses path-based ownership like graded_cards.
      */
     match /users/{userId}/collections/{collectionId} {
-      allow read: if isOwner(userId);
+      allow get, list: if isOwner(userId) || resource.data.isPublic == true;
       allow write: if isOwner(userId);
+    }
+
+    /**
+     * @description Secures the collection of manually added cards (non-graded).
+     * @path /users/{userId}/collection_cards/{collectionCardId}
+     * @allow (create, read, list, update, delete) A user can manage their own collection cards.
+     * @allow (get, list) Anyone can read public cards.
+     * @principle Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/collection_cards/{collectionCardId} {
+      allow get, list: if isOwner(userId) || resource.data.isPublic == true;
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId) && resource != null;
     }
 
     /**

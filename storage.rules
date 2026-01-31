@@ -17,6 +17,12 @@ service firebase.storage {
       allow write: if isOwner(userId);
     }
     
+    // Collection card images - users can only access their own collection card images
+    match /collection_cards/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+    
     // Profile images - users can only write their own, anyone can read
     match /profiles/{userId}/{allPaths=**} {
       allow read: if true;

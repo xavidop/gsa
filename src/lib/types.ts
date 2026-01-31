@@ -12,9 +12,31 @@ export type Collection = {
   userId: string;
   name: string;
   description?: string;
+  coverImageUrl?: string;
   createdAt: Timestamp | Date;
   updatedAt: Timestamp | Date;
   cardCount?: number;
+  isPublic?: boolean;
+};
+
+export type CollectionCard = {
+  id: string;
+  userId: string;
+  collectionId: string;
+  cardName: string;
+  set?: string;
+  year?: string;
+  cardNumber?: string;
+  variant?: string;
+  imageUrl?: string;
+  quantity?: number;
+  purchasePrice?: number;
+  purchaseDate?: Timestamp | Date;
+  notes?: string;
+  condition?: string;
+  isPublic?: boolean;
+  createdAt: Timestamp | Date;
+  updatedAt?: Timestamp | Date;
 };
 
 export type GradingHistory = {

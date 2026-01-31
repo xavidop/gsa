@@ -5,15 +5,17 @@ import { Icons } from '@/components/icons';
 import { UserNav } from '@/components/user-nav';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, BarChart3, User, PlusCircle, BookOpen, Menu, Settings, LogOut, Users } from 'lucide-react';
+import { LayoutGrid, BarChart3, User, PlusCircle, BookOpen, Menu, Settings, LogOut, Users, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser, useFirestore, useAuth } from '@/firebase';
+import { useUser, useFirestore, useAuth, useCollection, useMemoFirebase } from '@/firebase';
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { AddCardDialog } from '@/components/add-card-dialog';
+import type { Collection } from '@/lib/types';
 
 export function Header() {
   const pathname = usePathname();
@@ -24,6 +26,18 @@ export function Header() {
   const [username, setUsername] = useState<string | null>(null);
   const [isProfilePublic, setIsProfilePublic] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [showAddCardDialog, setShowAddCardDialog] = useState(false);
+
+  // Fetch user's collections
+  const collectionsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'collections'),
+      orderBy('createdAt', 'desc')
+    );
+  }, [firestore, user]);
+
+  const { data: collections = [] } = useCollection<Collection>(collectionsQuery);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -115,6 +129,17 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            variant="outline"
+            className="gap-2"
+            onClick={() => setShowAddCardDialog(true)}
+            disabled={!user}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add Card</span>
+          </Button>
+          
           <Link href="/grade">
             <Button size="sm" className="gap-2">
               <PlusCircle className="h-4 w-4" />
@@ -226,6 +251,15 @@ export function Header() {
           </Sheet>
         </div>
       </div>
+      
+      {/* Add Card Dialog */}
+      {user && (
+        <AddCardDialog
+          open={showAddCardDialog}
+          onOpenChange={setShowAddCardDialog}
+          collections={collections || []}
+        />
+      )}
     </header>
   );
 }

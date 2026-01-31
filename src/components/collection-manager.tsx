@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, FolderOpen, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, FolderOpen, Edit2, Trash2, X, Globe, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +43,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useUser();
   const firestore = useFirestore();
@@ -55,6 +57,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
       await addDoc(collection(firestore, 'users', user.uid, 'collections'), {
         name: name.trim(),
         description: description.trim() || null,
+        isPublic: isPublic,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -66,6 +69,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
 
       setName('');
       setDescription('');
+      setIsPublic(false);
       setIsCreateOpen(false);
       onCollectionCreated?.();
     } catch (error) {
@@ -88,6 +92,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
       await updateDoc(doc(firestore, 'users', user.uid, 'collections', selectedCollection.id), {
         name: name.trim(),
         description: description.trim() || null,
+        isPublic: isPublic,
         updatedAt: serverTimestamp(),
       });
 
@@ -98,6 +103,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
 
       setName('');
       setDescription('');
+      setIsPublic(false);
       setSelectedCollection(null);
       setIsEditOpen(false);
       onCollectionCreated?.();
@@ -144,6 +150,7 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
     setSelectedCollection(coll);
     setName(coll.name);
     setDescription(coll.description || '');
+    setIsPublic(coll.isPublic || false);
     setIsEditOpen(true);
   };
 
@@ -190,6 +197,19 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
                   rows={3}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="create-public">Public Collection</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Make this collection visible on your public profile
+                  </p>
+                </div>
+                <Switch
+                  id="create-public"
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -215,7 +235,14 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{coll.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium truncate">{coll.name}</p>
+                    {coll.isPublic ? (
+                      <Globe className="h-3 w-3 text-green-500 shrink-0" title="Public" />
+                    ) : (
+                      <Lock className="h-3 w-3 text-muted-foreground shrink-0" title="Private" />
+                    )}
+                  </div>
                   {coll.description && (
                     <p className="text-xs text-muted-foreground truncate">{coll.description}</p>
                   )}
@@ -271,6 +298,19 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="edit-public">Public Collection</Label>
+                <p className="text-xs text-muted-foreground">
+                  Make this collection visible on your public profile
+                </p>
+              </div>
+              <Switch
+                id="edit-public"
+                checked={isPublic}
+                onCheckedChange={setIsPublic}
               />
             </div>
           </div>

@@ -18,6 +18,70 @@
         }
       ],
       "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "graded_cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "collectionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isPublic",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "graded_cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "collectionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "collection_cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "collectionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "isPublic",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "collection_cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "collectionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
