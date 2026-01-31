@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from 'react';
 import { collection as firestoreCollection, query, where, getDocs, doc, getDoc, orderBy } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
+import { useSearchParams } from 'next/navigation';
 import type { GradedCard, Collection, CollectionCard } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,8 @@ type DisplayCard = (GradedCard & { cardType: 'graded' }) | (CollectionCard & { c
 
 export default function PublicCollectionDetailPage({ params }: CollectionDetailPageProps) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const userIdFromQuery = searchParams.get('userId');
   const firestore = useFirestore();
   const { user } = useUser();
   const [collection, setCollection] = useState<Collection | null>(null);
@@ -141,7 +144,41 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
           }
         }
 
-        // Not owner's collection - search all users for public collections
+        // If userId provided in query, try that user's collection
+        if (userIdFromQuery) {
+          const collectionRef = doc(firestore, 'users', userIdFromQuery, 'collections', id);
+          const collectionSnap = await getDoc(collectionRef);
+          
+          if (collectionSnap.exists()) {
+            const collectionData = {
+              id: collectionSnap.id,
+              ...collectionSnap.data(),
+              createdAt: collectionSnap.data().createdAt?.toDate?.() || collectionSnap.data().createdAt,
+              updatedAt: collectionSnap.data().updatedAt?.toDate?.() || collectionSnap.data().updatedAt,
+            } as Collection;
+
+            // Only show if public or user is owner
+            if (collectionData.isPublic || (user && user.uid === userIdFromQuery)) {
+              setCollection(collectionData);
+              setIsOwner(user?.uid === userIdFromQuery);
+              setOwnerId(userIdFromQuery);
+              
+              // Fetch owner's username
+              const userDocRef = doc(firestore, 'users', userIdFromQuery);
+              const userDocSnap = await getDoc(userDocRef);
+              if (userDocSnap.exists()) {
+                setUsername(userDocSnap.data().username || '');
+              }
+
+              // Fetch public cards only for non-owners
+              await fetchCards(userIdFromQuery, id, user?.uid === userIdFromQuery);
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Last resort - search all users for public collections
         const usersRef = firestoreCollection(firestore, 'users');
         const usersSnap = await getDocs(usersRef);
         
@@ -182,7 +219,7 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
     };
 
     fetchCollection();
-  }, [id, firestore, user?.uid]);
+  }, [id, firestore, user?.uid, userIdFromQuery]);
 
   if (isLoading) {
     return (
@@ -290,7 +327,7 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
                     <DigitalSlab card={card as GradedCard} />
                   </Link>
                 ) : (
-                  <Link href={`/collection-card/${card.id}`}>
+                  <Link href={`/collection-card/${card.id}?userId=${ownerId}`}>
                     <CollectionCardDisplay card={card as CollectionCard} />
                   </Link>
                 )}

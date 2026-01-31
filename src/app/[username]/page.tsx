@@ -290,7 +290,7 @@ export default function PublicProfilePage({
               {collections.map((coll) => (
                 <Link
                   key={coll.id}
-                  href={`/collection/${coll.id}`}
+                  href={`/collection/${coll.id}?userId=${userProfile?.id}`}
                   className="flex-shrink-0 w-48 p-4 rounded-xl bg-card/50 border border-border hover:border-primary/50 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -337,7 +337,7 @@ export default function PublicProfilePage({
               {collectionCards.map((card) => (
                 <Link
                   key={card.id}
-                  href={`/collection-card/${card.id}`}
+                  href={`/collection-card/${card.id}?userId=${userProfile?.id}`}
                   className="group transition-transform hover:scale-[1.02]"
                 >
                   <CollectionCardDisplay card={card} />

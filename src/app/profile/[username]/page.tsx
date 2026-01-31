@@ -313,7 +313,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
             {collections.map((collection) => (
               <Link 
                 key={collection.id} 
-                href={isOwnProfile ? `/collection-detail/${collection.id}` : (collection.isPublic ? `/collection/${collection.id}` : '#')}
+                href={isOwnProfile ? `/collection-detail/${collection.id}` : (collection.isPublic ? `/collection/${collection.id}?userId=${targetUser?.id}` : '#')}
                 className={`flex-shrink-0 w-48 p-4 rounded-xl bg-card/50 border border-border ${(isOwnProfile || collection.isPublic) ? 'hover:border-primary/50 transition-colors' : 'cursor-default'}`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -377,7 +377,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 return (
                   <Link
                     key={card.id}
-                    href={`/collection-card/${card.id}`}
+                    href={`/collection-card/${card.id}?userId=${targetUser?.id}`}
                     className="group transition-transform hover:scale-[1.02]"
                   >
                     <CollectionCardDisplay card={card} />

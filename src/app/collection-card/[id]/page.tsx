@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from 'react';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { useFirestore, useFirebase, useMemoFirebase } from '@/firebase';
+import { useSearchParams } from 'next/navigation';
 import type { CollectionCard, Collection } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,8 @@ export default function PublicCollectionCardDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const userIdFromQuery = searchParams.get('userId');
   const firestore = useFirestore();
   const { user } = useFirebase();
   const [card, setCard] = useState<CollectionCard | null>(null);
@@ -66,7 +69,33 @@ export default function PublicCollectionCardDetailPage({
           }
         }
 
-        // If not in current user's collection, search all users' public collection_cards
+        // If userId provided in query, try that user's card
+        if (userIdFromQuery) {
+          const cardRef = doc(firestore, 'users', userIdFromQuery, 'collection_cards', id);
+          const cardSnap = await getDoc(cardRef);
+          
+          if (cardSnap.exists()) {
+            const cardData = { id: cardSnap.id, ...cardSnap.data() } as CollectionCard;
+            
+            // Only show if card is public or user is owner
+            if (cardData.isPublic || (user && user.uid === userIdFromQuery)) {
+              setCard(cardData);
+              setCardOwnerId(userIdFromQuery);
+              
+              // Fetch owner username
+              const userRef = doc(firestore, 'users', userIdFromQuery);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                setOwnerUsername(userSnap.data().username);
+              }
+              
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Last resort - search all users' public collection_cards
         const usersRef = collection(firestore, 'users');
         const usersSnap = await getDocs(usersRef);
         
@@ -98,7 +127,7 @@ export default function PublicCollectionCardDetailPage({
     };
 
     fetchCard();
-  }, [firestore, user, id]);
+  }, [firestore, user, id, userIdFromQuery]);
 
   if (isLoading) {
     return (
