@@ -10,12 +10,13 @@ import { CardNotes } from '@/components/card-notes';
 import { CardSocial } from '@/components/card-social';
 import { SocialShare } from '@/components/social-share';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertTriangle, Home, Loader2, Download } from 'lucide-react';
+import { AlertTriangle, Home, Loader2, Download, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import Image from 'next/image';
 import { downloadCertificate } from '@/lib/certificate';
+import { generateCardLabel } from '@/lib/label';
 import QRCode from 'qrcode';
 import Head from 'next/head';
 
@@ -128,6 +129,18 @@ export default function PublicCardPage({
     downloadCertificate(card, qrCodeDataUrl);
   }, [card]);
 
+  const handlePrintLabel = useCallback(async () => {
+    if (!card) return;
+    try {
+      await generateCardLabel(card);
+    } catch (error) {
+      console.error('Failed to generate label:', error);
+    }
+  }, [card]);
+
+  // Check if current user is the card owner
+  const isOwner = user && card && user.uid === card.userId;
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
@@ -225,6 +238,12 @@ export default function PublicCardPage({
                   title={cardTitle}
                   description={cardDescription}
                 />
+                {isOwner && (
+                  <Button onClick={handlePrintLabel} size="lg" variant="outline" className="w-full sm:w-auto">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Label
+                  </Button>
+                )}
                 <Button onClick={handleDownloadCertificate} size="lg" className="w-full sm:w-auto">
                   <Download className="mr-2 h-4 w-4" />
                   Download Certificate
