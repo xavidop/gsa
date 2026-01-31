@@ -5,7 +5,7 @@ import { Icons } from '@/components/icons';
 import { UserNav } from '@/components/user-nav';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, BarChart3, User, PlusCircle, BookOpen, Menu, Settings, LogOut, Users, Plus } from 'lucide-react';
+import { LayoutGrid, BarChart3, User, PlusCircle, BookOpen, Menu, Settings, LogOut, Users, Plus, Rss } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -77,6 +77,17 @@ export function Header() {
               >
                 <LayoutGrid className="h-4 w-4" />
                 Collection
+              </Button>
+            </Link>
+            
+            <Link href="/feed">
+              <Button 
+                variant={pathname === '/feed' ? 'secondary' : 'ghost'} 
+                size="sm"
+                className="gap-2"
+              >
+                <Rss className="h-4 w-4" />
+                Feed
               </Button>
             </Link>
             
@@ -181,6 +192,16 @@ export function Header() {
                   >
                     <LayoutGrid className="h-4 w-4" />
                     Collection
+                  </Button>
+                </Link>
+                
+                <Link href="/feed" onClick={() => setIsOpen(false)}>
+                  <Button 
+                    variant={pathname === '/feed' ? 'secondary' : 'ghost'} 
+                    className="w-full justify-start gap-2"
+                  >
+                    <Rss className="h-4 w-4" />
+                    Feed
                   </Button>
                 </Link>
                 
