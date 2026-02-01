@@ -163,7 +163,11 @@ export default function LeaderboardPage() {
               <CardTitle>Highest Average Grade</CardTitle>
             </CardHeader>
             <CardContent>
-              {renderLeaderboard(gradeLeaderboard, (score) => `${score.toFixed(2)}/10`)}
+              {renderLeaderboard(gradeLeaderboard, (score) => {
+                // Format grade nicely - show no decimals if whole number, else 2 decimals
+                const formatted = score % 1 === 0 ? score.toString() : score.toFixed(2);
+                return formatted;
+              })}
             </CardContent>
           </Card>
         </TabsContent>
