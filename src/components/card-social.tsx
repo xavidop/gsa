@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { GradedCard, CardComment } from '@/lib/types';
+import { checkAchievementsInBackground } from '@/lib/gamification';
 
 interface CardSocialProps {
   card: GradedCard;
@@ -151,6 +152,9 @@ export function CardSocial({ card, onUpdate }: CardSocialProps) {
         await Promise.all(updates);
         setIsLiked(true);
         setLikeCount(prev => prev + 1);
+        
+        // Check for "first_like" achievement
+        checkAchievementsInBackground(user.uid);
       }
 
       if (onUpdate) onUpdate();

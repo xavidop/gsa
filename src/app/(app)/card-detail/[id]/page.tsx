@@ -3,14 +3,16 @@
 import { use, useState, useEffect } from 'react';
 import { doc, getDoc, collection } from 'firebase/firestore';
 import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useSearchParams } from 'next/navigation';
 import type { CollectionCard, Collection } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Loader2, Edit, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Loader2, Edit, Eye, EyeOff, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AddCardDialog } from '@/components/add-card-dialog';
+import { TradeProposalDialog } from '@/components/trade-proposal-dialog';
 import { useCollection as useCollectionHook } from '@/firebase/firestore/use-collection';
 
 export default function CollectionCardDetailPage({
@@ -19,51 +21,93 @@ export default function CollectionCardDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const userIdFromQuery = searchParams.get('userId');
   const firestore = useFirestore();
   const { user } = useUser();
   const [card, setCard] = useState<CollectionCard | null>(null);
+  const [cardOwnerId, setCardOwnerId] = useState<string | null>(null);
+  const [ownerUsername, setOwnerUsername] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [showTradeDialog, setShowTradeDialog] = useState(false);
 
-  // Fetch user's collections for the edit dialog
+  const isOwner = user && cardOwnerId && user.uid === cardOwnerId;
+  const canProposeTrade = user && cardOwnerId && user.uid !== cardOwnerId;
+
+  // Fetch user's collections for the edit dialog (only if owner)
   const collectionsQuery = useMemoFirebase(() => {
-    if (user) {
+    if (user && cardOwnerId && user.uid === cardOwnerId) {
       return collection(firestore, 'users', user.uid, 'collections');
     }
     return null;
-  }, [firestore, user]);
+  }, [firestore, user, cardOwnerId]);
   const { data: collections } = useCollectionHook<Collection>(collectionsQuery);
 
   useEffect(() => {
     const fetchCard = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const cardRef = doc(firestore, 'users', user.uid, 'collection_cards', id);
-        const cardSnap = await getDoc(cardRef);
+        // Try to find the card in current user's collection first
+        if (user) {
+          const cardRef = doc(firestore, 'users', user.uid, 'collection_cards', id);
+          const cardSnap = await getDoc(cardRef);
 
-        if (!cardSnap.exists()) {
-          setError('Card not found');
-          setIsLoading(false);
-          return;
+          if (cardSnap.exists()) {
+            const cardData = { id: cardSnap.id, ...cardSnap.data() } as CollectionCard;
+            setCard(cardData);
+            setCardOwnerId(user.uid);
+            
+            // Fetch owner username
+            const userRef = doc(firestore, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              setOwnerUsername(userSnap.data().username);
+            }
+            
+            setIsLoading(false);
+            return;
+          }
         }
 
-        setCard({ id: cardSnap.id, ...cardSnap.data() } as CollectionCard);
+        // If userId provided in query, try that user's card
+        if (userIdFromQuery) {
+          const cardRef = doc(firestore, 'users', userIdFromQuery, 'collection_cards', id);
+          const cardSnap = await getDoc(cardRef);
+          
+          if (cardSnap.exists()) {
+            const cardData = { id: cardSnap.id, ...cardSnap.data() } as CollectionCard;
+            
+            // Only show if card is public or user is owner
+            if (cardData.isPublic || (user && user.uid === userIdFromQuery)) {
+              setCard(cardData);
+              setCardOwnerId(userIdFromQuery);
+              
+              // Fetch owner username
+              const userRef = doc(firestore, 'users', userIdFromQuery);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                setOwnerUsername(userSnap.data().username);
+              }
+              
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+
+        setError('Card not found or you do not have permission to view it');
+        setIsLoading(false);
       } catch (err) {
         console.error('Error fetching card:', err);
         setError('Failed to load card');
-      } finally {
         setIsLoading(false);
       }
     };
 
     fetchCard();
-  }, [firestore, user, id]);
+  }, [firestore, user, id, userIdFromQuery]);
 
   if (isLoading) {
     return (
@@ -99,6 +143,18 @@ export default function CollectionCardDetailPage({
 
   return (
     <div className="container py-6 sm:py-8 px-4 max-w-7xl">
+      {/* Back Link for non-owner */}
+      {!isOwner && ownerUsername && (
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/${ownerUsername}`}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to @{ownerUsername}&apos;s Profile
+            </Link>
+          </Button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Card Display */}
         <div className="flex justify-center lg:sticky lg:top-24 h-fit">
@@ -184,12 +240,22 @@ export default function CollectionCardDetailPage({
 
         {/* Card Details */}
         <div className="space-y-6">
-          {/* Edit Button */}
-          <div className="flex justify-end">
-            <Button onClick={() => setEditDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Card
-            </Button>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2">
+            {/* Propose Trade - Only for other users' cards */}
+            {canProposeTrade && (
+              <Button variant="default" onClick={() => setShowTradeDialog(true)}>
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Propose Trade
+              </Button>
+            )}
+            {/* Edit Button - Only show for owner */}
+            {isOwner && (
+              <Button onClick={() => setEditDialogOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Card
+              </Button>
+            )}
           </div>
           
           <Card>
@@ -279,8 +345,8 @@ export default function CollectionCardDetailPage({
         </div>
       </div>
 
-      {/* Edit Dialog */}
-      {collections && (
+      {/* Edit Dialog - Only for owner */}
+      {isOwner && collections && (
         <AddCardDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
@@ -289,8 +355,8 @@ export default function CollectionCardDetailPage({
           onCardUpdated={() => {
             // Refresh the card data
             const fetchCard = async () => {
-              if (!user) return;
-              const cardRef = doc(firestore, 'users', user.uid, 'collection_cards', id);
+              if (!user || !cardOwnerId) return;
+              const cardRef = doc(firestore, 'users', cardOwnerId, 'collection_cards', id);
               const cardSnap = await getDoc(cardRef);
               if (cardSnap.exists()) {
                 setCard({ id: cardSnap.id, ...cardSnap.data() } as CollectionCard);
@@ -298,6 +364,18 @@ export default function CollectionCardDetailPage({
             };
             fetchCard();
           }}
+        />
+      )}
+
+      {/* Trade Proposal Dialog - Only for other users' cards */}
+      {canProposeTrade && ownerUsername && (
+        <TradeProposalDialog
+          open={showTradeDialog}
+          onOpenChange={setShowTradeDialog}
+          preselectedUser={ownerUsername}
+          preselectedCardId={card.id}
+          preselectedCardType="collection"
+          onTradeCreated={() => setShowTradeDialog(false)}
         />
       )}
     </div>

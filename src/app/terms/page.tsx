@@ -23,7 +23,7 @@ export default function TermsPage() {
 
       <main className="flex-1 container max-w-4xl py-8 sm:py-12 px-4">
         <h1 className="text-3xl sm:text-4xl font-bold font-headline mb-6 sm:mb-8">Terms of Service</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Last updated: January 29, 2026</p>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Last updated: February 1, 2026</p>
 
         <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
           <section>
@@ -40,11 +40,17 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
               <li>AI-based card condition analysis and grading</li>
-              <li>Digital slab generation and display</li>
+              <li>Digital slab generation and display with printable labels</li>
               <li>Certificate generation with QR code verification</li>
               <li>Collection management and organization tools</li>
-              <li>Analytics and portfolio reporting</li>
+              <li>Portfolio analytics with real-time market value tracking</li>
+              <li>Price alerts and notifications for market changes</li>
+              <li>Trading system for exchanging cards with other collectors</li>
+              <li>Leaderboards and competitive rankings</li>
+              <li>Achievement system and gamification features</li>
+              <li>Social network features (following, activity feed, discover)</li>
               <li>Public profile sharing capabilities</li>
+              <li>Data export in CSV and PDF formats</li>
             </ul>
           </section>
 
@@ -106,35 +112,77 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">8. Limitation of Liability</h2>
+            <h2 className="text-2xl font-bold mb-4">8. Trading System</h2>
+            <p className="text-muted-foreground mb-4">
+              GSA provides a trading platform for users to propose and complete card trades. By using the trading feature:
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
+              <li>You agree that all trade proposals are non-binding until both parties accept</li>
+              <li>You are responsible for verifying the authenticity of cards before completing trades</li>
+              <li>GSA provides a fairness calculator as a guide only; it does not guarantee equal value</li>
+              <li>GSA is not responsible for disputes, losses, or damages arising from trades</li>
+              <li>Physical exchange of cards is the sole responsibility of the trading parties</li>
+              <li>You agree not to use the trading system for fraudulent purposes</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold mb-4">9. Portfolio Analytics and Price Data</h2>
+            <p className="text-muted-foreground mb-4">
+              GSA provides portfolio analytics and market price information. You understand that:
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
+              <li>Market prices are estimates based on available data and may not reflect actual market conditions</li>
+              <li>Price alerts are provided for informational purposes only</li>
+              <li>GSA is not a financial advisor and does not provide investment advice</li>
+              <li>You should not rely solely on GSA data for buying, selling, or trading decisions</li>
+              <li>GSA is not liable for any financial losses based on our price data or analytics</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold mb-4">10. Leaderboards and Achievements</h2>
+            <p className="text-muted-foreground mb-4">
+              GSA features competitive leaderboards and an achievement system. By participating:
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
+              <li>Your username and relevant statistics may be displayed publicly on leaderboards</li>
+              <li>Achievements and badges earned are for entertainment purposes only</li>
+              <li>GSA reserves the right to reset leaderboards or modify achievement criteria</li>
+              <li>Manipulation of rankings through fraudulent activity may result in account termination</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold mb-4">11. Limitation of Liability</h2>
             <p className="text-muted-foreground">
               GSA and its affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service. This includes but is not limited to damages for loss of profits, data, or other intangible losses.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">9. Service Modifications</h2>
+            <h2 className="text-2xl font-bold mb-4">12. Service Modifications</h2>
             <p className="text-muted-foreground">
               We reserve the right to modify, suspend, or discontinue the service at any time without notice. We may also modify these terms at any time, and continued use of the service constitutes acceptance of the modified terms.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">10. Termination</h2>
+            <h2 className="text-2xl font-bold mb-4">13. Termination</h2>
             <p className="text-muted-foreground">
               We may terminate or suspend your account and access to the service immediately, without prior notice, for any reason, including breach of these Terms. Upon termination, your right to use the service will immediately cease.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">11. Governing Law</h2>
+            <h2 className="text-2xl font-bold mb-4">14. Governing Law</h2>
             <p className="text-muted-foreground">
               These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which GSA operates, without regard to its conflict of law provisions.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">12. Contact Information</h2>
+            <h2 className="text-2xl font-bold mb-4">15. Contact Information</h2>
             <p className="text-muted-foreground">
               If you have any questions about these Terms, please contact us at legal@globalslabauthority.com
             </p>

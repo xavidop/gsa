@@ -65,7 +65,10 @@ export default function AnalyticsPage() {
           nearMint: 0,
           other: 0,
         },
+        gradedValue: 0,
         ungradedValue: 0,
+        totalCollectionValue: 0,
+        totalInvestment: 0,
         conditionDistribution: [],
       };
     }
@@ -138,12 +141,39 @@ export default function AnalyticsPage() {
       other: graded.filter(c => c.grade < 7).length,
     };
 
+    // Graded cards value calculation (use market price if available, otherwise purchase price)
+    const gradedValue = graded.reduce((sum, card) => {
+      // Prefer market price, fall back to purchase price, then estimate based on grade
+      if (card.currentMarketPrice) {
+        return sum + card.currentMarketPrice;
+      }
+      if (card.purchasePrice) {
+        return sum + card.purchasePrice;
+      }
+      // Estimate based on grade if no price available
+      const basePrice = 50;
+      const gradeMultiplier = Math.pow(1.5, card.grade - 5);
+      return sum + (basePrice * gradeMultiplier);
+    }, 0);
+
     // Ungraded cards value calculation
     const ungradedValue = ungraded.reduce((sum, card) => {
       const price = card.purchasePrice || 0;
       const qty = card.quantity || 1;
       return sum + (price * qty);
     }, 0);
+
+    // Total collection value
+    const totalCollectionValue = gradedValue + ungradedValue;
+
+    // Total investment (purchase prices)
+    const gradedInvestment = graded.reduce((sum, card) => sum + (card.purchasePrice || 0), 0);
+    const ungradedInvestment = ungraded.reduce((sum, card) => {
+      const price = card.purchasePrice || 0;
+      const qty = card.quantity || 1;
+      return sum + (price * qty);
+    }, 0);
+    const totalInvestment = gradedInvestment + ungradedInvestment;
 
     // Condition distribution for ungraded cards
     const conditionCounts: { [key: string]: number } = {};
@@ -166,7 +196,10 @@ export default function AnalyticsPage() {
       subgradeAverages,
       topCards,
       gradeBreakdown,
+      gradedValue,
       ungradedValue,
+      totalCollectionValue,
+      totalInvestment,
       conditionDistribution,
     };
   }, [gradedCards, collectionCards]);
@@ -262,19 +295,52 @@ export default function AnalyticsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ungraded Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${analytics.ungradedValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              ${analytics.totalCollectionValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </div>
             <p className="text-xs text-muted-foreground">
-              Based on purchase prices
+              Graded: ${analytics.gradedValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} | Ungraded: ${analytics.ungradedValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Value Breakdown */}
+      {analytics.totalCollectionValue > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Collection Value Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 grid-cols-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Collection Value</p>
+                <p className="text-xl font-bold text-green-600">
+                  ${analytics.totalCollectionValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Graded Cards Value</p>
+                <p className="text-xl font-bold text-blue-600">
+                  ${analytics.gradedValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </p>
+                <p className="text-xs text-muted-foreground">Market prices</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ungraded Cards Value</p>
+                <p className="text-xl font-bold text-emerald-600">
+                  ${analytics.ungradedValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </p>
+                <p className="text-xs text-muted-foreground">Purchase prices</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Card Type Breakdown */}
       {analytics.totalCards > 0 && (

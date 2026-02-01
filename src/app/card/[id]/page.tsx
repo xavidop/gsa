@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CardNotes } from '@/components/card-notes';
 import { CardSocial } from '@/components/card-social';
 import { SocialShare } from '@/components/social-share';
+import { TradeProposalDialog } from '@/components/trade-proposal-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AlertTriangle, Home, Loader2, Download, Printer } from 'lucide-react';
+import { AlertTriangle, Home, Loader2, Download, Printer, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
@@ -31,6 +32,7 @@ export default function PublicCardPage({
   const publicId = id;
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const [cardOwner, setCardOwner] = useState<{ username?: string; displayName?: string; photoURL?: string } | null>(null);
+  const [showTradeDialog, setShowTradeDialog] = useState(false);
 
   const cardQuery = useMemoFirebase(() => {
     if (!publicId) return null;
@@ -238,6 +240,12 @@ export default function PublicCardPage({
                   title={cardTitle}
                   description={cardDescription}
                 />
+                {!isOwner && user && card?.userId && (
+                  <Button onClick={() => setShowTradeDialog(true)} size="lg" variant="default" className="w-full sm:w-auto">
+                    <ArrowLeftRight className="mr-2 h-4 w-4" />
+                    Propose Trade
+                  </Button>
+                )}
                 {isOwner && (
                   <Button onClick={handlePrintLabel} size="lg" variant="outline" className="w-full sm:w-auto">
                     <Printer className="mr-2 h-4 w-4" />
@@ -310,6 +318,17 @@ export default function PublicCardPage({
           id="qr-canvas"
         />
       </div>
+
+      {/* Trade Proposal Dialog */}
+      {user && card?.userId && card.userId !== user.uid && (
+        <TradeProposalDialog
+          open={showTradeDialog}
+          onOpenChange={setShowTradeDialog}
+          preselectedUser={cardOwner?.username}
+          preselectedCardId={card.id}
+          preselectedCardType="graded"
+        />
+      )}
     </div>
   );
 }

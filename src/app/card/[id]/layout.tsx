@@ -1,19 +1,25 @@
 'use client';
 
 import { useUser } from '@/firebase';
-import { Header } from '@/components/header';
+import { Sidebar } from '@/components/sidebar';
+import { MobileHeader } from '@/components/mobile-header';
+import { TopBar } from '@/components/top-bar';
 import { Icons } from '@/components/icons';
 import Link from 'next/link';
 
 export default function CardLayout({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
 
-  // If user is logged in, show full header with navigation
+  // If user is logged in, show sidebar layout
   if (user) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col">
+          <MobileHeader />
+          <TopBar />
+          <main className="flex-1">{children}</main>
+        </div>
       </div>
     );
   }

@@ -8,10 +8,11 @@ import type { CollectionCard, Collection } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Loader2, Edit, Eye, EyeOff, Home, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Loader2, Edit, Eye, EyeOff, Home, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AddCardDialog } from '@/components/add-card-dialog';
+import { TradeProposalDialog } from '@/components/trade-proposal-dialog';
 import { useCollection as useCollectionHook } from '@/firebase/firestore/use-collection';
 import { Icons } from '@/components/icons';
 
@@ -32,8 +33,10 @@ export default function PublicCollectionCardDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [showTradeDialog, setShowTradeDialog] = useState(false);
 
   const isOwner = user && cardOwnerId && user.uid === cardOwnerId;
+  const canProposeTrade = user && cardOwnerId && user.uid !== cardOwnerId;
 
   // Fetch user's collections for the edit dialog (always call hook, but query is null if not owner)
   const collectionsQuery = useMemoFirebase(() => {
@@ -314,15 +317,23 @@ export default function PublicCollectionCardDetailPage({
 
           {/* Card Details */}
           <div className="space-y-6">
-            {/* Edit Button - Only show for owner */}
-            {isOwner && (
-              <div className="flex justify-end">
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2">
+              {/* Propose Trade - Only for other users' cards */}
+              {canProposeTrade && (
+                <Button variant="default" onClick={() => setShowTradeDialog(true)}>
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  Propose Trade
+                </Button>
+              )}
+              {/* Edit Button - Only show for owner */}
+              {isOwner && (
                 <Button onClick={() => setEditDialogOpen(true)}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Card
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
             
             <Card>
               <CardHeader>
@@ -431,6 +442,18 @@ export default function PublicCollectionCardDetailPage({
             };
             fetchCard();
           }}
+        />
+      )}
+
+      {/* Trade Proposal Dialog - Only for other users' cards */}
+      {canProposeTrade && ownerUsername && (
+        <TradeProposalDialog
+          open={showTradeDialog}
+          onOpenChange={setShowTradeDialog}
+          preselectedUser={ownerUsername}
+          preselectedCardId={card.id}
+          preselectedCardType="collection"
+          onTradeCreated={() => setShowTradeDialog(false)}
         />
       )}
     </div>

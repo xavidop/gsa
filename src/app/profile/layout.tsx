@@ -4,7 +4,9 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Header } from '@/components/header';
+import { Sidebar } from '@/components/sidebar';
+import { MobileHeader } from '@/components/mobile-header';
+import { TopBar } from '@/components/top-bar';
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -25,9 +27,13 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <MobileHeader />
+        <TopBar />
+        <main className="flex-1">{children}</main>
+      </div>
     </div>
   );
 }

@@ -25,9 +25,9 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <AuthForm mode="signup" />
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" className="underline text-primary">
+            <Link href="/login" className="text-accent font-medium hover:underline">
               Log in
             </Link>
           </div>

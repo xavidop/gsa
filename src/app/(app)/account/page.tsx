@@ -69,6 +69,7 @@ export default function AccountPage() {
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [currentUsername, setCurrentUsername] = useState<string>('');
   const [isProfilePublic, setIsProfilePublic] = useState(true);
+  const [tradingEnabled, setTradingEnabled] = useState(true);
   const { toast } = useToast();
   const { user, auth, firestore, storage } = useFirebase();
   const router = useRouter();
@@ -98,6 +99,7 @@ export default function AccountPage() {
         setCurrentUsername(username);
         usernameForm.setValue('username', username);
         setIsProfilePublic(data?.isProfilePublic !== false);
+        setTradingEnabled(data?.tradingEnabled !== false);
       }
     };
     fetchUserData();
@@ -216,6 +218,33 @@ export default function AccountPage() {
       window.location.reload();
     } catch (error: any) {
       console.error('Profile visibility update error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Failed to update profile visibility.',
+      });
+    }
+  };
+
+  const handleTradingToggle = async (enabled: boolean) => {
+    if (!user) return;
+
+    try {
+      await setDoc(doc(firestore, 'users', user.uid), {
+        tradingEnabled: enabled,
+        updatedAt: new Date(),
+      }, { merge: true });
+
+      setTradingEnabled(enabled);
+
+      toast({
+        title: enabled ? 'Trading enabled' : 'Trading disabled',
+        description: enabled 
+          ? 'Other users can now propose trades with you' 
+          : 'You will not receive trade offers',
+      });
+    } catch (error: any) {
+      console.error('Trading toggle error:', error);
       toast({
         variant: 'destructive',
         title: 'Update Failed',
@@ -615,9 +644,9 @@ export default function AccountPage() {
       <Card>
         <CardHeader>
           <CardTitle>Privacy Settings</CardTitle>
-          <CardDescription>Control who can see your profile</CardDescription>
+          <CardDescription>Control who can see your profile and trade with you</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="profile-visibility">Public Profile</Label>
@@ -631,6 +660,22 @@ export default function AccountPage() {
               id="profile-visibility"
               checked={isProfilePublic}
               onCheckedChange={handleProfileVisibilityToggle}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div className="space-y-0.5">
+              <Label htmlFor="trading-enabled">Enable Trading</Label>
+              <p className="text-sm text-muted-foreground">
+                {tradingEnabled 
+                  ? 'Other users can propose trades with you' 
+                  : 'You will not receive trade offers'}
+              </p>
+            </div>
+            <Switch
+              id="trading-enabled"
+              checked={tradingEnabled}
+              onCheckedChange={handleTradingToggle}
             />
           </div>
         </CardContent>

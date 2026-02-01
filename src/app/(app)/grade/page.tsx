@@ -19,6 +19,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 import { analyzeCard } from '@/ai/ai-card-grading';
+import { checkAchievementsInBackground } from '@/lib/gamification';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -127,6 +128,9 @@ export default function GradePage() {
         };
         
         setGradedCard(finalCard);
+
+        // Check for achievements in background
+        checkAchievementsInBackground(user.uid);
 
     } catch (error: any) {
       toast({

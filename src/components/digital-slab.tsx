@@ -23,7 +23,7 @@ export function DigitalSlab({ card, isPublicPage = false }: { card: GradedCard, 
 
   return (
     <motion.div
-      className="relative w-full max-w-[320px] mx-auto h-[520px] rounded-3xl bg-card/60 backdrop-blur-sm border border-border overflow-hidden shadow-2xl shadow-primary/10"
+      className="relative w-full max-w-[280px] sm:max-w-[320px] mx-auto h-[460px] sm:h-[520px] rounded-3xl bg-card/60 backdrop-blur-sm border border-border overflow-hidden shadow-2xl shadow-primary/10"
       whileHover="hover"
       style={{ perspective: 800 }}
     >
@@ -59,8 +59,8 @@ export function DigitalSlab({ card, isPublicPage = false }: { card: GradedCard, 
           </div>
 
           {/* Image */}
-          <div className="flex-1 flex items-center justify-center py-4">
-            <div className="relative w-[220px] h-[300px] rounded-lg overflow-hidden shadow-lg shadow-black/50 border-2 border-accent/50">
+          <div className="flex-1 flex items-center justify-center py-3 sm:py-4">
+            <div className="relative w-[180px] sm:w-[220px] h-[250px] sm:h-[300px] rounded-lg overflow-hidden shadow-lg shadow-black/50 border-2 border-accent/50">
                <Image
                 src={card.frontImageUrl}
                 alt={card.cardName || 'Trading Card'}

@@ -28,6 +28,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, Sparkles } from 'lucide-react';
 import type { Collection, CollectionCard } from '@/lib/types';
+import { checkAchievementsInBackground } from '@/lib/gamification';
 
 interface AddCardDialogProps {
   open: boolean;
@@ -219,6 +220,11 @@ export function AddCardDialog({
           description: 'Card updated successfully',
         });
 
+        // Check for value achievements if purchase price changed
+        if (cardData.purchasePrice !== editCard.purchasePrice) {
+          checkAchievementsInBackground(user.uid);
+        }
+
         onCardUpdated?.();
       } else {
         // Add new card to Firestore
@@ -232,6 +238,9 @@ export function AddCardDialog({
           title: 'Success',
           description: 'Card added to collection',
         });
+
+        // Check for achievements in background
+        checkAchievementsInBackground(user.uid);
       }
 
       onOpenChange(false);

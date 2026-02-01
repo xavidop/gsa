@@ -129,11 +129,13 @@ export default function FeedPage() {
           });
         }
 
-        // Attach user profiles to cards
-        const cardsWithUsers = recentCards.map(card => ({
-          ...card,
-          userProfile: userProfiles[card.userId],
-        }));
+        // Attach user profiles to cards and filter out private profiles
+        const cardsWithUsers = recentCards
+          .map(card => ({
+            ...card,
+            userProfile: userProfiles[card.userId],
+          }))
+          .filter(card => card.userProfile?.isProfilePublic !== false);
 
         setCards(cardsWithUsers);
       } catch (error) {
@@ -298,7 +300,7 @@ export default function FeedPage() {
                         </div>
                       </Link>
                     ) : (
-                      <Link href={`/collection-card/${card.id}?userId=${card.userId}`}>
+                      <Link href={`/card-detail/${card.id}?userId=${card.userId}`}>
                         <div className="cursor-pointer hover:scale-105 transition-transform">
                           <CollectionCardDisplay card={card as CollectionCard} />
                         </div>
@@ -338,7 +340,7 @@ export default function FeedPage() {
                             </Button>
                           </Link>
                         ) : (
-                          <Link href={`/collection-card/${card.id}?userId=${card.userId}`}>
+                          <Link href={`/card-detail/${card.id}?userId=${card.userId}`}>
                             <Button variant="ghost" size="sm" className="gap-2">
                               <ArrowUpRight className="h-4 w-4" />
                               View Details

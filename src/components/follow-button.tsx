@@ -9,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   addDoc,
   deleteDoc,
   doc,
@@ -17,6 +18,8 @@ import {
   increment,
 } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { notifyNewFollower } from '@/lib/notifications';
+import { checkAchievementsInBackground } from '@/lib/gamification';
 
 interface FollowButtonProps {
   targetUserId: string;
@@ -123,10 +126,21 @@ export function FollowButton({ targetUserId, targetUserName, onFollowChange }: F
         setIsFollowing(true);
         setFollowId(docRef.id);
         
+        // Get current user's username and send notification
+        const currentUserDoc = await getDoc(doc(firestore, 'users', user.uid));
+        const currentUsername = currentUserDoc.exists() 
+          ? currentUserDoc.data().username || user.displayName || 'Someone'
+          : 'Someone';
+        
+        await notifyNewFollower(firestore, targetUserId, currentUsername, user.uid);
+        
         toast({
           title: 'Following',
           description: `You are now following ${targetUserName || 'this user'}.`,
         });
+        
+        // Check for achievements for the followed user (first_follower, influencer)
+        checkAchievementsInBackground(targetUserId);
         
         // Notify parent component of change
         onFollowChange?.();

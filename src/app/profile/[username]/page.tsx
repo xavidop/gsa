@@ -313,7 +313,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
             {collections.map((collection) => (
               <Link 
                 key={collection.id} 
-                href={isOwnProfile ? `/collection-detail/${collection.id}` : (collection.isPublic ? `/collection/${collection.id}?userId=${targetUser?.id}` : '#')}
+                href={isOwnProfile ? `/collection-detail/${collection.id}` : (collection.isPublic ? `/collection/${collection.id}?userId=${profile?.uid}` : '#')}
                 className={`flex-shrink-0 w-48 p-4 rounded-xl bg-card/50 border border-border ${(isOwnProfile || collection.isPublic) ? 'hover:border-primary/50 transition-colors' : 'cursor-default'}`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -325,7 +325,9 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 <div className="font-medium text-sm truncate">{collection.name}</div>
                 <div className="text-xs text-muted-foreground mt-1">
                   {collection.createdAt
-                    ? new Date(collection.createdAt).toLocaleDateString()
+                    ? (collection.createdAt instanceof Date 
+                        ? collection.createdAt 
+                        : collection.createdAt.toDate()).toLocaleDateString()
                     : ''}
                 </div>
               </Link>
@@ -377,7 +379,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 return (
                   <Link
                     key={card.id}
-                    href={`/collection-card/${card.id}?userId=${targetUser?.id}`}
+                    href={`/collection-card/${card.id}?userId=${profile?.uid}`}
                     className="group transition-transform hover:scale-[1.02]"
                   >
                     <CollectionCardDisplay card={card} />

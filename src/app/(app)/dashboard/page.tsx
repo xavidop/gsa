@@ -455,8 +455,8 @@ export default function DashboardPage() {
   }, [allCards, searchQuery, collectionFilter, gradeFilter, sortBy, gradeMin, gradeMax, yearFilter, setFilter, cardTypeFilter]);
 
   return (
-    <div className="container py-6 sm:py-8 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+    <div className="w-full py-6 sm:py-8 px-4 overflow-x-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 max-w-full">
         {/* Sidebar with Collections - Hidden on mobile, use collection filter instead */}
         <div className="hidden lg:block space-y-6">
           <Card>
@@ -688,7 +688,7 @@ export default function DashboardPage() {
         </div>
       ) : filteredAndSortedCards.length > 0 ? (
         viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 justify-items-center md:justify-items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
             {filteredAndSortedCards.map((card) => (
               <div key={card.id} className="relative group">
                 {card.cardType === 'graded' ? (

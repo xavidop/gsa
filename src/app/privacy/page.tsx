@@ -23,7 +23,7 @@ export default function PrivacyPage() {
 
       <main className="flex-1 container max-w-4xl py-8 sm:py-12 px-4">
         <h1 className="text-3xl sm:text-4xl font-bold font-headline mb-6 sm:mb-8">Privacy Policy</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Last updated: January 29, 2026</p>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Last updated: February 1, 2026</p>
 
         <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
           <section>
@@ -42,6 +42,10 @@ export default function PrivacyPage() {
               <li><strong>Profile Information:</strong> Profile photo, bio, and public profile preferences</li>
               <li><strong>Card Images:</strong> Front and back images of trading cards you upload for grading</li>
               <li><strong>Collection Data:</strong> Card names, sets, grades, and collection organization</li>
+              <li><strong>Portfolio Data:</strong> Purchase prices, investment information, and price alert settings</li>
+              <li><strong>Trading Data:</strong> Trade proposals, offers, and transaction history</li>
+              <li><strong>Social Data:</strong> Following relationships, likes, comments, and activity feed interactions</li>
+              <li><strong>Notification Preferences:</strong> Your preferences for receiving alerts and notifications</li>
             </ul>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">2.2 Automatically Collected Information</h3>
@@ -58,8 +62,13 @@ export default function PrivacyPage() {
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
               <li>Provide and maintain our card grading service</li>
               <li>Process and analyze card images using AI algorithms</li>
-              <li>Generate digital slabs and certificates</li>
+              <li>Generate digital slabs, printable labels, and certificates</li>
               <li>Manage your account and collections</li>
+              <li>Calculate portfolio values and provide analytics</li>
+              <li>Send price alerts and notifications when thresholds are met</li>
+              <li>Facilitate trading between users and calculate trade fairness</li>
+              <li>Generate leaderboard rankings and award achievements</li>
+              <li>Power social features including activity feeds and discover functionality</li>
               <li>Display public profiles when you choose to make them public</li>
               <li>Send service-related notifications and updates</li>
               <li>Improve our AI models and service quality</li>
@@ -74,7 +83,7 @@ export default function PrivacyPage() {
             
             <h3 className="text-xl font-semibold mb-3 mt-6">4.1 Public Information</h3>
             <p className="text-muted-foreground">
-              When you make your profile or cards public, that information becomes accessible to anyone on the internet. This includes your username, public cards, grades, and any other information you choose to display publicly.
+              When you make your profile or cards public, that information becomes accessible to anyone on the internet. This includes your username, public cards, grades, collection values, leaderboard rankings, achievements, and any other information you choose to display publicly. Your activity (such as grading new cards) may appear in the activity feeds of users who follow you.
             </p>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Service Providers</h3>
@@ -116,7 +125,10 @@ export default function PrivacyPage() {
               <li><strong>Access:</strong> Request a copy of your personal data</li>
               <li><strong>Correction:</strong> Update or correct your information through account settings</li>
               <li><strong>Deletion:</strong> Delete your account and associated data</li>
-              <li><strong>Privacy Controls:</strong> Control which cards and information are public vs. private</li>
+              <li><strong>Privacy Controls:</strong> Control which cards, collections, and information are public vs. private</li>
+              <li><strong>Leaderboard Opt-out:</strong> Choose whether to appear on public leaderboards</li>
+              <li><strong>Trade Privacy:</strong> Control who can send you trade proposals</li>
+              <li><strong>Notification Controls:</strong> Manage price alerts, trade notifications, and other alerts</li>
               <li><strong>Export:</strong> Download your collection data in CSV or PDF format</li>
               <li><strong>Opt-out:</strong> Opt out of non-essential communications</li>
             </ul>

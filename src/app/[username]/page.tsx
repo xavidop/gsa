@@ -7,13 +7,15 @@ import type { GradedCard, CollectionCard, Collection } from '@/lib/types';
 import { DigitalSlab } from '@/components/digital-slab';
 import { CollectionCardDisplay } from '@/components/collection-card-display';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Home, Loader2, FolderOpen } from 'lucide-react';
+import { AlertTriangle, Home, Loader2, FolderOpen, ArrowLeftRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { TradeProposalDialog } from '@/components/trade-proposal-dialog';
+import { FollowButton } from '@/components/follow-button';
 
 type UserProfile = {
   id: string;
@@ -40,6 +42,13 @@ export default function PublicProfilePage({
   const [collections, setCollections] = useState<Collection[]>([]);
   const [collectionCards, setCollectionCards] = useState<CollectionCard[]>([]);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [showTradeDialog, setShowTradeDialog] = useState(false);
+  const [preselectedCardForTrade, setPreselectedCardForTrade] = useState<{ id: string; type: 'graded' | 'collection' } | null>(null);
+
+  const openTradeForCard = (cardId: string, cardType: 'graded' | 'collection') => {
+    setPreselectedCardForTrade({ id: cardId, type: cardType });
+    setShowTradeDialog(true);
+  };
 
   // Remove @ prefix if present
   const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
@@ -261,6 +270,17 @@ export default function PublicProfilePage({
               <span><strong>{stats.totalCards + collectionCards.length}</strong> cards</span>
             </div>
           </div>
+
+          {/* Action Buttons - only show for other users when logged in */}
+          {user && !isOwnProfile && (
+            <div className="flex gap-2 mt-4 sm:mt-0">
+              <FollowButton targetUserId={userProfile.id} />
+              <Button onClick={() => setShowTradeDialog(true)}>
+                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                Propose Trade
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Stats Bar */}
@@ -324,24 +344,56 @@ export default function PublicProfilePage({
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {/* Graded Cards */}
               {cards && cards.map((card) => (
-                <Link
-                  key={card.id}
-                  href={`/card/${card.publicShareId}`}
-                  className="group transition-transform hover:scale-[1.02]"
-                >
-                  <DigitalSlab card={card} isPublicPage={true} />
-                </Link>
+                <div key={card.id} className="relative group">
+                  <Link
+                    href={`/card/${card.publicShareId}`}
+                    className="block transition-transform hover:scale-[1.02]"
+                  >
+                    <DigitalSlab card={card} isPublicPage={true} />
+                  </Link>
+                  {user && !isOwnProfile && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openTradeForCard(card.id, 'graded');
+                      }}
+                    >
+                      <ArrowLeftRight className="h-3 w-3 mr-1" />
+                      Trade
+                    </Button>
+                  )}
+                </div>
               ))}
               
               {/* Collection Cards */}
               {collectionCards.map((card) => (
-                <Link
-                  key={card.id}
-                  href={`/collection-card/${card.id}?userId=${userProfile?.id}`}
-                  className="group transition-transform hover:scale-[1.02]"
-                >
-                  <CollectionCardDisplay card={card} />
-                </Link>
+                <div key={card.id} className="relative group">
+                  <Link
+                    href={`/collection-card/${card.id}?userId=${userProfile?.id}`}
+                    className="block transition-transform hover:scale-[1.02]"
+                  >
+                    <CollectionCardDisplay card={card} />
+                  </Link>
+                  {user && !isOwnProfile && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openTradeForCard(card.id, 'collection');
+                      }}
+                    >
+                      <ArrowLeftRight className="h-3 w-3 mr-1" />
+                      Trade
+                    </Button>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -355,6 +407,24 @@ export default function PublicProfilePage({
           </p>
         </div>
       </footer>
+
+      {/* Trade Proposal Dialog */}
+      {user && !isOwnProfile && (
+        <TradeProposalDialog
+          open={showTradeDialog}
+          onOpenChange={(open) => {
+            setShowTradeDialog(open);
+            if (!open) setPreselectedCardForTrade(null);
+          }}
+          preselectedUser={userProfile.username}
+          preselectedCardId={preselectedCardForTrade?.id}
+          preselectedCardType={preselectedCardForTrade?.type}
+          onTradeCreated={() => {
+            setShowTradeDialog(false);
+            setPreselectedCardForTrade(null);
+          }}
+        />
+      )}
     </div>
   );
 }

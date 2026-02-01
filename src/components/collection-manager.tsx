@@ -20,6 +20,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Collection } from '@/lib/types';
+import { checkAchievementsInBackground } from '@/lib/gamification';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,6 +67,9 @@ export function CollectionManager({ collections, onCollectionCreated }: Collecti
         title: 'Collection created',
         description: `"${name}" has been created successfully.`,
       });
+
+      // Check for collection achievements
+      checkAchievementsInBackground(user.uid);
 
       setName('');
       setDescription('');

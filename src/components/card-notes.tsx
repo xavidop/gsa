@@ -11,6 +11,7 @@ import { doc, updateDoc, Timestamp, getDoc, setDoc, collection, query, where, li
 import { useFirestore, useUser } from '@/firebase';
 import { Edit, Save, X, DollarSign, Calendar, FileText } from 'lucide-react';
 import type { GradedCard } from '@/lib/types';
+import { checkAchievementsInBackground } from '@/lib/gamification';
 
 interface CardNotesProps {
   card: GradedCard;
@@ -94,6 +95,11 @@ export function CardNotes({ card, onUpdate }: CardNotesProps) {
         title: 'Notes saved',
         description: 'Card notes and details have been updated.',
       });
+      
+      // Check for value achievements if purchase price changed
+      if (purchasePrice && parseFloat(purchasePrice) !== card.purchasePrice) {
+        checkAchievementsInBackground(card.userId);
+      }
       
       setIsEditing(false);
       if (onUpdate) onUpdate();
