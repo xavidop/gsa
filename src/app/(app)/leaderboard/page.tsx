@@ -30,13 +30,6 @@ export default function LeaderboardPage() {
         generateLeaderboard('trading-volume', 'all-time', 50)
       ]);
       
-      console.log('Leaderboards loaded:', {
-        value: value.entries.length,
-        count: count.entries.length,
-        grade: grade.entries.length,
-        trade: trade.entries.length
-      });
-      
       setValueLeaderboard(value);
       setCountLeaderboard(count);
       setGradeLeaderboard(grade);

@@ -142,7 +142,29 @@ export function TradeProposalDialog({
   };
 
   const handleCreateTrade = async () => {
-    if (!user || !selectedUser || offeredCards.size === 0 || requestedCards.size === 0) return;
+    // Validate based on trade type
+    if (!user || !selectedUser) return;
+    
+    // For cards-only: need cards on both sides
+    // For cards-and-cash: need cards on both sides + optional cash
+    // For cash-only: need either cards to buy (requestedCards + senderCash) OR cards to sell (offeredCards + receiverCash)
+    const hasOfferedCards = offeredCards.size > 0;
+    const hasRequestedCards = requestedCards.size > 0;
+    const hasSenderCash = senderCash > 0;
+    const hasReceiverCash = receiverCash > 0;
+    
+    if (tradeType === 'cash-only') {
+      // Must have cards on at least one side and cash on the other
+      const isBuying = hasRequestedCards && hasSenderCash; // Buying their cards with your cash
+      const isSelling = hasOfferedCards && hasReceiverCash; // Selling your cards for their cash
+      if (!isBuying && !isSelling) {
+        setErrorMessage('For cash-only trades, select cards to buy/sell and set the cash amount.');
+        return;
+      }
+    } else {
+      // cards-only or cards-and-cash: need cards on both sides
+      if (!hasOfferedCards || !hasRequestedCards) return;
+    }
 
     try {
       await createTradeOffer({
@@ -303,8 +325,13 @@ export function TradeProposalDialog({
             </div>
             {allMyCards.length === 0 ? (
               <div className="text-center py-12 border rounded-lg">
-                <p className="text-muted-foreground mb-2">You don't have any cards yet</p>
-                <p className="text-sm text-muted-foreground">Grade some cards or add collection cards first to start trading</p>
+                <p className="text-muted-foreground mb-2">You don't have any cards to offer</p>
+                <p className="text-sm text-muted-foreground">
+                  {tradeType === 'cash-only' 
+                    ? "No cards to sell? Skip this step to buy cards with cash instead."
+                    : "Grade some cards or add collection cards first to start trading"
+                  }
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-1">
@@ -363,9 +390,12 @@ export function TradeProposalDialog({
               </Button>
               <Button
                 onClick={() => setStep('select-request')}
-                disabled={offeredCards.size === 0}
+                disabled={tradeType !== 'cash-only' && offeredCards.size === 0}
               >
-                Next: Select Cards to Request
+                {tradeType === 'cash-only' && offeredCards.size === 0 
+                  ? 'Skip to Select Cards to Buy'
+                  : 'Next: Select Cards to Request'
+                }
               </Button>
             </div>
           </div>
@@ -376,8 +406,13 @@ export function TradeProposalDialog({
             <h3 className="font-semibold">Select cards you want to request</h3>
             {allTheirCards.length === 0 ? (
               <div className="text-center py-12 border rounded-lg">
-                <p className="text-muted-foreground mb-2">This user has no public cards available for trading</p>
-                <p className="text-sm text-muted-foreground">They need to grade cards and make them public first</p>
+                <p className="text-muted-foreground mb-2">This user has no public cards available</p>
+                <p className="text-sm text-muted-foreground">
+                  {tradeType === 'cash-only' && offeredCards.size > 0
+                    ? "You can still sell your cards for cash - skip this step."
+                    : "They need to grade cards and make them public first"
+                  }
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-1">
@@ -436,15 +471,20 @@ export function TradeProposalDialog({
               </Button>
               <Button
                 onClick={() => {
-                  if (tradeType === 'cards-and-cash') {
+                  if (tradeType === 'cards-and-cash' || tradeType === 'cash-only') {
                     setStep('cash');
                   } else {
                     setStep('review');
                   }
                 }}
-                disabled={requestedCards.size === 0}
+                disabled={tradeType !== 'cash-only' && requestedCards.size === 0}
               >
-                {tradeType === 'cards-and-cash' ? 'Add Cash' : 'Review Trade'}
+                {tradeType === 'cash-only' 
+                  ? (requestedCards.size === 0 ? 'Skip to Set Cash Amount' : 'Set Cash Amount')
+                  : tradeType === 'cards-and-cash' 
+                    ? 'Add Cash' 
+                    : 'Review Trade'
+                }
               </Button>
             </div>
           </div>
@@ -496,11 +536,9 @@ export function TradeProposalDialog({
                 Back
               </Button>
               <Button onClick={() => {
-                if (tradeType === 'cash-only') {
-                  setStep('cash');
-                } else {
-                  setStep('select-offer');
-                }
+                // All trade types go through card selection
+                // For cash-only, you pick cards to buy OR sell
+                setStep('select-offer');
               }}>
                 Continue
               </Button>
@@ -547,13 +585,7 @@ export function TradeProposalDialog({
             </div>
 
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => {
-                if (tradeType === 'cash-only') {
-                  setStep('trade-type');
-                } else {
-                  setStep('select-request');
-                }
-              }}>
+              <Button variant="outline" onClick={() => setStep('select-request')}>
                 Back
               </Button>
               <Button onClick={() => setStep('review')}>

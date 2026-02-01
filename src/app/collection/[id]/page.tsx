@@ -42,7 +42,6 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
   // isOwnerParam: if true, fetch all cards; if false, only fetch public cards
   const fetchCards = async (userId: string, collectionId: string, isOwnerParam: boolean) => {
     try {
-      console.log('Fetching cards for:', { userId, collectionId, isOwner: isOwnerParam });
       
       // Fetch graded cards in this collection
       // Owner sees all cards, non-owner only sees public cards
@@ -59,7 +58,7 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
               where('isPublic', '==', true)
             );
         const gradedCardsSnap = await getDocs(gradedCardsQuery);
-        console.log('Graded cards found:', gradedCardsSnap.docs.length);
+
         gradedCards = gradedCardsSnap.docs.map(docSnap => ({
           id: docSnap.id,
           ...docSnap.data(),
@@ -86,7 +85,6 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
               where('isPublic', '==', true)
             );
         const collectionCardsSnap = await getDocs(collectionCardsQuery);
-        console.log('Collection cards found:', collectionCardsSnap.docs.length);
         collectionCards = collectionCardsSnap.docs.map(docSnap => ({
           id: docSnap.id,
           ...docSnap.data(),
@@ -98,7 +96,6 @@ export default function PublicCollectionDetailPage({ params }: CollectionDetailP
         console.error('Error code:', collectionErr.code, 'Message:', collectionErr.message);
       }
 
-      console.log('Total cards fetched:', { gradedCards: gradedCards.length, collectionCards: collectionCards.length });
 
       // Merge both types of cards
       setCards([...gradedCards, ...collectionCards]);
