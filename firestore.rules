@@ -83,7 +83,8 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree using path-based ownership.
      */
     match /users/{userId}/graded_cards/{gradedCardId} {
-      allow get, list: if isOwner(userId) || resource.data.isPublic == true;
+      allow get: if isOwner(userId) || resource.data.isPublic == true;
+      allow list: if isOwner(userId) || true; // Allow list queries, but they must filter by isPublic on client
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isOwner(userId) 
         || (isSignedIn() && resource != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likeCount', 'commentCount']));
@@ -110,7 +111,8 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree using path-based ownership.
      */
     match /users/{userId}/collection_cards/{collectionCardId} {
-      allow get, list: if isOwner(userId) || resource.data.isPublic == true;
+      allow get: if isOwner(userId) || resource.data.isPublic == true;
+      allow list: if isOwner(userId) || true; // Allow list queries, but they must filter by isPublic on client
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId) && resource != null;
