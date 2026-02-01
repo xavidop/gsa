@@ -27,12 +27,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen w-full overflow-hidden">
+    <div className="flex min-h-screen w-full">
       {/* Desktop Sidebar */}
       <Sidebar />
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Mobile Header */}
         <MobileHeader />
         

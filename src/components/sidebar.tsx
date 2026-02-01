@@ -99,9 +99,9 @@ export function Sidebar() {
   );
 
   return (
-    <div className="hidden lg:flex flex-col w-64 border-r bg-card h-screen sticky top-0">
+    <div className="hidden lg:flex flex-col w-64 border-r bg-card min-h-screen h-full sticky top-0 self-start">
       {/* Logo and Notifications */}
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="h-14 px-4 border-b flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold font-headline text-xl">
           <Icons.logo className="w-8 h-8" />
           GSA

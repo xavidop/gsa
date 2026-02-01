@@ -56,7 +56,7 @@ export default function Home() {
         <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold font-headline text-xl">
             <Icons.logo className="w-8 h-8" />
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">GSA</span>
+            <span className="text-foreground">GSA</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
             <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -503,7 +503,7 @@ export default function Home() {
             <div className="col-span-2 md:col-span-1">
               <Link href="/" className="flex items-center gap-2 font-bold font-headline text-xl mb-4">
                 <Icons.logo className="w-8 h-8" />
-                <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">GSA</span>
+                <span className="text-foreground">GSA</span>
               </Link>
               <p className="text-sm text-muted-foreground">
                 The future of trading card grading is here.
