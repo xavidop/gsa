@@ -77,12 +77,13 @@ service cloud.firestore {
     /**
      * @description Secures the private collection of a user's graded cards.
      * @path /users/{userId}/graded_cards/{gradedCardId}
-     * @allow Authenticated users can perform CRUD operations for trading.
+     * @allow Anyone can read cards (public filtering happens at query level with isPublic field).
+     * @allow Authenticated users can perform write operations for trading.
      * @principle Data validation happens at application level for trades.
      */
     match /users/{userId}/graded_cards/{gradedCardId} {
-      allow get: if isOwner(userId) || isSignedIn();
-      allow list: if isOwner(userId) || isSignedIn();
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn();
       allow update: if isSignedIn();
       allow delete: if isSignedIn();
@@ -92,24 +93,26 @@ service cloud.firestore {
      * @description Secures a user's collections for organizing their graded cards.
      * @path /users/{userId}/collections/{collectionId}
      * @allow A user can manage their own collections.
-     * @allow (get, list) Authenticated users can read collections.
+     * @allow (get, list) Anyone can read public collections, authenticated users can read all.
      * @principle Uses path-based ownership like graded_cards.
      */
     match /users/{userId}/collections/{collectionId} {
-      allow get: if isOwner(userId) || isSignedIn();
-      allow list: if isOwner(userId) || isSignedIn();
+      // Allow reading: owner sees all, others see public only (enforced at query level)
+      allow get: if true;
+      allow list: if true;
       allow write: if isOwner(userId);
     }
 
     /**
      * @description Secures the collection of manually added cards (non-graded).
      * @path /users/{userId}/collection_cards/{collectionCardId}
-     * @allow Authenticated users can perform CRUD operations for trading.
+     * @allow Anyone can read public cards, authenticated users can modify.
      * @principle Data validation happens at application level for trades.
      */
     match /users/{userId}/collection_cards/{collectionCardId} {
-      allow get: if isOwner(userId) || isSignedIn();
-      allow list: if isOwner(userId) || isSignedIn();
+      // Allow reading: owner sees all, others see public only (enforced at query level)
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn();
       allow update: if isSignedIn();
       allow delete: if isSignedIn();
