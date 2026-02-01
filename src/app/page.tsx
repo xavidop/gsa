@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, CheckCircle, Download, BookOpen, FolderOpen, FileBarChart } from 'lucide-react';
+import { ArrowRight, CheckCircle, Download, BookOpen, FolderOpen, FileBarChart, Users, Rss } from 'lucide-react';
 import { DigitalSlab } from '@/components/digital-slab';
 import { Icons } from '@/components/icons';
 import placeHolderImage from '@/lib/placeholder-images.json';
@@ -65,7 +65,7 @@ export default function Home() {
                     The Future of Card Grading is Here
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Use the power of AI to get instant, accurate grades for your trading cards. Welcome to the Global Slab Authority.
+                    Use the power of AI to get instant, accurate grades for your trading cards. Connect with collectors and share your collection with the world.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -99,10 +99,10 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:gap-16 mt-12">
-               <div className="relative group grid gap-1">
-                 <div className="flex items-center gap-4">
-                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+            <div className="mx-auto grid max-w-6xl items-center gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-4 lg:gap-8 mt-12">
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
                      <Icons.upload className="h-5 w-5" />
                    </div>
                    <h3 className="text-lg font-bold">Simple Upload</h3>
@@ -111,9 +111,9 @@ export default function Home() {
                    Easily upload front and back images of your card. Our system handles the rest.
                  </p>
                </div>
-               <div className="relative group grid gap-1">
-                 <div className="flex items-center gap-4">
-                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
                      <Icons.brainCircuit className="h-5 w-5" />
                    </div>
                    <h3 className="text-lg font-bold">AI Grading</h3>
@@ -122,9 +122,9 @@ export default function Home() {
                    AI analyzes centering, corners, edges, and surface for a comprehensive grade.
                  </p>
                </div>
-               <div className="relative group grid gap-1">
-                 <div className="flex items-center gap-4">
-                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
                      <Icons.slab className="h-5 w-5" />
                    </div>
                    <h3 className="text-lg font-bold">Digital Slab</h3>
@@ -133,9 +133,9 @@ export default function Home() {
                    Receive a beautiful, animated digital slab to showcase your card's official GSA grade.
                  </p>
                </div>
-               <div className="relative group grid gap-1">
-                 <div className="flex items-center gap-4">
-                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
                      <Download className="h-5 w-5" />
                    </div>
                    <h3 className="text-lg font-bold">PDF Certificates</h3>
@@ -144,9 +144,9 @@ export default function Home() {
                    Download professional certificates with QR codes for verification and insurance.
                  </p>
                </div>
-               <div className="relative group grid gap-1">
-                 <div className="flex items-center gap-4">
-                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
                      <FolderOpen className="h-5 w-5" />
                    </div>
                    <h3 className="text-lg font-bold">Smart Collections</h3>
@@ -155,15 +155,37 @@ export default function Home() {
                    Organize graded and ungraded cards into public or private collections with AI extraction.
                  </p>
                </div>
-               <div className="relative group grid gap-1">
-                 <div className="flex items-center gap-4">
-                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center">
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
                      <FileBarChart className="h-5 w-5" />
                    </div>
                    <h3 className="text-lg font-bold">Analytics & Insights</h3>
                  </div>
                  <p className="text-sm text-secondary-foreground/80">
                    Track your entire collection with detailed analytics, value tracking, and export options.
+                 </p>
+               </div>
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
+                     <Users className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-lg font-bold">Social Network</h3>
+                 </div>
+                 <p className="text-sm text-secondary-foreground/80">
+                   Follow other collectors, discover amazing collections, and build your community.
+                 </p>
+               </div>
+               <div className="relative group grid gap-1 text-center sm:text-left">
+                 <div className="flex items-center gap-4 justify-center sm:justify-start">
+                   <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center shrink-0">
+                     <Rss className="h-5 w-5" />
+                   </div>
+                   <h3 className="text-lg font-bold">Activity Feed</h3>
+                 </div>
+                 <p className="text-sm text-secondary-foreground/80">
+                   Stay updated with the latest cards pulled by collectors you follow in your personalized feed.
                  </p>
                </div>
             </div>
