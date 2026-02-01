@@ -54,20 +54,20 @@ const categoryFilters = [
 ];
 
 export default function NotificationsPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('all');
 
   const notificationsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || isUserLoading) return null;
     return query(
       collection(firestore, 'notifications'),
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc'),
       limit(100)
     );
-  }, [user, firestore]);
+  }, [user, firestore, isUserLoading]);
 
   const { data: notifications, isLoading } = useCollection<Notification>(notificationsQuery);
 

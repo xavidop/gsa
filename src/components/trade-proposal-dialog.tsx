@@ -34,7 +34,7 @@ export function TradeProposalDialog({
   preselectedCardId,
   preselectedCardType = 'graded'
 }: TradeProposalDialogProps) {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -56,18 +56,18 @@ export function TradeProposalDialog({
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const myGradedCardsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || isUserLoading) return null;
     return query(
       collection(firestore, 'users', user.uid, 'graded_cards')
     );
-  }, [user, firestore]);
+  }, [user, firestore, isUserLoading]);
 
   const myCollectionCardsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    if (!user || !firestore || isUserLoading) return null;
     return query(
       collection(firestore, 'users', user.uid, 'collection_cards')
     );
-  }, [user, firestore]);
+  }, [user, firestore, isUserLoading]);
 
   const { data: myGradedCardsData } = useCollection<GradedCard>(myGradedCardsQuery);
   const { data: myCollectionCardsData } = useCollection<CollectionCard>(myCollectionCardsQuery);

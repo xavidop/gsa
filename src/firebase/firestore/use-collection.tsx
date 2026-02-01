@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Query,
   onSnapshot,
@@ -60,6 +60,16 @@ export function useCollection<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
+  const retryDelayMs = 800;
+
+  useEffect(() => {
+    // Reset retry count when query changes
+    retryCountRef.current = 0;
+    setRetryKey(0);
+  }, [memoizedTargetRefOrQuery]);
 
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
@@ -76,6 +86,7 @@ export function useCollection<T = any>(
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
+        retryCountRef.current = 0; // Reset on success
         const results: ResultItemType[] = [];
         for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
@@ -85,11 +96,44 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        // Debug: log the actual error structure
+        console.log('Firestore error:', { code: error.code, message: error.message, name: error.name });
+        
+        // Check multiple ways - Firebase error codes can vary
+        const errorCode = (error.code || error.name || '').toLowerCase();
+        const errorMessage = (error.message || '').toLowerCase();
+        const isPermissionError = 
+          errorCode === 'permission-denied' || 
+          errorCode.includes('permission') ||
+          errorMessage.includes('permission') ||
+          errorMessage.includes('insufficient') ||
+          errorMessage.includes('missing');
+        
+        // Retry on permission errors (auth token might not be propagated yet)
+        if (isPermissionError && retryCountRef.current < maxRetries) {
+          retryCountRef.current += 1;
+          console.log(`Firestore permission denied, retrying (${retryCountRef.current}/${maxRetries})...`);
+          unsubscribe(); // Unsubscribe before retrying
+          setTimeout(() => {
+            setRetryKey(k => k + 1); // Trigger effect re-run
+          }, retryDelayMs);
+          return;
+        }
+
         // This logic extracts the path from either a ref or a query
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+
+        // For permission errors, fail silently with empty data (collection might not exist yet)
+        if (isPermissionError) {
+          console.warn(`Firestore permission denied for ${path}. Returning empty data.`);
+          setError(null);
+          setData([]);
+          setIsLoading(false);
+          return;
+        }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -100,13 +144,13 @@ export function useCollection<T = any>(
         setData(null)
         setIsLoading(false)
 
-        // trigger global error propagation
+        // trigger global error propagation only for non-permission errors
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+  }, [memoizedTargetRefOrQuery, retryKey]); // Re-run if the target query/reference changes or on retry.
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
   }

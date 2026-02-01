@@ -44,7 +44,7 @@ type SortOption = 'date-desc' | 'date-asc' | 'grade-desc' | 'grade-asc' | 'name-
 type CardTypeFilter = 'all' | 'graded' | 'collection';
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -85,13 +85,13 @@ export default function DashboardPage() {
 
   // Fetch collections - now as subcollection under user (path-based security)
   const collectionsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || isUserLoading) return null;
     
     return query(
       collection(firestore, 'users', user.uid, 'collections'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, isUserLoading]);
 
   const { data: collections = [], isLoading: collectionsLoading } = useCollection<Collection>(collectionsQuery);
 
@@ -302,23 +302,23 @@ export default function DashboardPage() {
   };
 
   const cardsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || isUserLoading) return null;
     return query(
       collection(firestore, 'users', user.uid, 'graded_cards'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, isUserLoading]);
 
   const { data: cards, isLoading: loading } = useCollection<GradedCard>(cardsQuery);
   
   // Fetch collection cards
   const collectionCardsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || isUserLoading) return null;
     return query(
       collection(firestore, 'users', user.uid, 'collection_cards'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, isUserLoading]);
 
   const { data: collectionCards, isLoading: collectionCardsLoading } = useCollection<CollectionCard>(collectionCardsQuery);
 

@@ -11,26 +11,26 @@ import { Button } from '@/components/ui/button';
 import { BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function AnalyticsPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
   // Fetch graded cards
   const gradedCardsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || isUserLoading) return null;
     return query(
       collection(firestore, 'users', user.uid, 'graded_cards'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, isUserLoading]);
 
   // Fetch collection cards (ungraded)
   const collectionCardsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || isUserLoading) return null;
     return query(
       collection(firestore, 'users', user.uid, 'collection_cards'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, isUserLoading]);
 
   const { data: gradedCards, isLoading: gradedLoading } = useCollection<GradedCard>(gradedCardsQuery);
   const { data: collectionCards, isLoading: collectionLoading } = useCollection<CollectionCard>(collectionCardsQuery);

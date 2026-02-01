@@ -48,13 +48,14 @@ const rarityColors: Record<string, string> = {
 };
 
 export function NotificationBell() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   const notificationsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
+    // Wait for auth to be fully loaded before querying
+    if (!user || !firestore || isUserLoading) return null;
     return query(
       collection(firestore, 'notifications'),
       where('userId', '==', user.uid),
